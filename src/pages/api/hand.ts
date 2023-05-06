@@ -86,11 +86,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
         FETCH FIRST 1 ROWS ONLY
     `;
 
-    // console.log(process.env.DB_USER);
-    // console.log(process.env.DB_PASS);
-    // console.log(process.env.DB_HOST);
-    // console.log(process.env.DB_PORT);
-    // console.log(process.env.DB_NAME);
+    console.log(process.env.DB_USER);
+    console.log(process.env.DB_PASS);
+    console.log(process.env.DB_HOST);
+    console.log(process.env.DB_PORT);
+    console.log(process.env.DB_NAME);
 
     const client = new Client ({
         user: process.env.DB_USER,
