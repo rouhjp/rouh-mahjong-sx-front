@@ -1,5 +1,12 @@
 .title_area h1{
     margin-right: 20px;
+    font-size: 2em;
+}
+
+@media (max-width: 500px){
+    .title_area h1{
+        font-size: 1.5em;
+    }
 }
 
 .title_area span{

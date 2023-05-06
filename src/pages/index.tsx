@@ -146,15 +146,17 @@ export default function Home() {
                       }
                     })}
                   </ul>
-                  <ul className={styles.lower_indicators}>
-                    {Array.from(Array(5).keys()).map((index)=>{
-                      if(index < question.situation.lower_indicators.length){
-                        return <li key={index}><img className={styles.tile_image} src={"tiles/"+question.situation.lower_indicators[index]+".jpg"} /></li>
-                      }else{
-                        return <li key={index}><img className={styles.tile_image} src={"tiles/back.jpg"} /></li>
-                      }
-                    })}
-                  </ul>
+                  {question.situation.lower_indicators.length > 0 &&
+                    <ul className={styles.lower_indicators}>
+                      {Array.from(Array(5).keys()).map((index)=>{
+                        if(index < question.situation.lower_indicators.length){
+                          return <li key={index}><img className={styles.tile_image} src={"tiles/"+question.situation.lower_indicators[index]+".jpg"} /></li>
+                        }else{
+                          return <li key={index}><img className={styles.tile_image} src={"tiles/back.jpg"} /></li>
+                        }
+                      })}
+                    </ul>
+                  }
                 </div>
               </>
             }
