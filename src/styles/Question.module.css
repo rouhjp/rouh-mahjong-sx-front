@@ -1,0 +1,200 @@
+.title_area h1{
+    margin-right: 20px;
+}
+
+.title_area span{
+    color: green;
+}
+
+.title_area{
+    display: flex;
+    align-items: center;
+}
+
+.sp_only{
+    display: none;
+}
+
+@media (max-width: 500px){
+    .sp_only{
+        display: block;
+    }
+}
+
+.container{
+    margin: 10px auto;
+    background-color: aliceblue;
+    max-width: 800px;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    border-radius: 8px;
+}
+
+.tile_image{
+    width: 40px;
+}
+
+.hand_tiles,
+.meld_tiles,
+.upper_indicators,
+.lower_indicators{
+    padding: 0;
+    margin: 0;
+    margin-right: 10px;
+    list-style: none;
+    display: inline-block;
+}
+
+.hand_tiles li,
+.meld_tiles li,
+.upper_indicators li,
+.lower_indicators li{
+    display: inline-block;
+}
+
+.hand_tiles li:last-child{
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.options,
+.situations{
+    padding: 0;
+    margin-bottom: 10px;
+    list-style: none;
+    display: inline-block;
+}
+
+.situations li{
+    padding: 0 10px;
+    display: inline-block;
+    border: 1px solid black;
+    background-color: white;
+    margin-right: 5px;
+}
+
+.options li{
+    padding: 0 10px;
+    display: inline-block;
+    border: 1px solid black;
+    background-color: white;
+    border-radius: 20px;
+    margin-right: 5px;
+}
+
+.guide{
+    font-size: 0.8em;   
+}
+
+.answer_area div{
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.answer_area .guess_score{
+    width: 80px;
+}
+
+.note{
+    font-size: 0.5em;
+    color: gray;
+}
+
+.answer_result{
+    color: #8b0000;
+}
+
+.score_expression span{
+    font-size: 1.5em;
+}
+
+.type_table{
+    overflow: hidden;
+}
+
+.hand_types,
+.point_types{
+    list-style: none;
+    padding: 0;
+    float: left;
+    width: 48%;
+    margin-right: 2%;
+    background-color: white;
+    box-sizing: border-box;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.hand_types li,
+.point_types li{
+    border-bottom: 1px dotted black;
+}
+
+.hand_types li .hand_type_name,
+.point_types li .point_type_name{
+    display: inline-block;
+    width: 80%;
+}   
+
+.hand_types li .hand_type_grade,
+.point_types li .point_type_point{
+    display: inline-block;
+    width: 20%;
+}
+
+.score_table_area{
+    overflow-x: scroll;
+    overflow-y: hidden;
+}
+
+.score_table,
+.score_table th,
+.score_table td{
+    border-collapse: collapse;
+    text-align: center;
+    background-color: white;
+}
+
+.score_table th{
+    background-color: rgb(241, 241, 241);
+}
+
+.score_table,
+.score_table th{
+    border: 1px solid black;
+}
+
+.score_table th,
+.score_table td{
+    padding: 5px;
+}
+
+.score_table .selected{
+    background-color: darksalmon;
+}
+
+.score_table .border_left{
+    border-left: 1px solid black;
+}
+.score_table .border_right{
+    border-right: 1px solid black;
+}
+.score_table .border_top{
+    border-top: 1px solid black;
+}
+.score_table .border_bottom{
+    border-bottom: 1px solid black;
+}
+
+.footer{
+    margin: auto auto 0;
+    background-color: aliceblue;
+    max-width: 800px;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-bottom: 10px;
+    border-radius: 8px;
+    font-size: 0.8em;
+    color: gray;
+}
