@@ -80,7 +80,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
 	        	FROM HAND_SCORE_POINT_TYPE hspt
 	        	GROUP BY hspt.HAND_ID
 	        ) hsptg ON hs.HAND_ID = hsptg.HAND_ID 
-        WHERE h.HAND_ID = '458'
         --WHERE h.IS_TSUMO = FALSE
         --AND h.SEAT_WIND <> 'E'
         ORDER BY RANDOM()
