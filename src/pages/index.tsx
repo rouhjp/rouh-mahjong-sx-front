@@ -13,7 +13,7 @@ type Answer = {
 }
 
 export default function Home() {
-  const [error, setError] = useState<boolean>(false);
+  const [error, setError] = useState<number>(0);
   const [initialized, setInitialized] = useState<boolean>(false);
   const [question, setQuestion] = useState<QuestionResponse>(EMPTY_QUESTION_RESPONSE);
   const [guessPoint, setGuessPoint] = useState<number>(0);
@@ -34,10 +34,10 @@ export default function Home() {
       setGuessScore(0);
       setAnswer(undefined);
       setInitialized(true);
-      setError(false);
+      setError(0);
     })
     .catch((err) => {
-      setError(true);
+      setError(err.response.status);
     });
   }
 
@@ -60,7 +60,10 @@ export default function Home() {
               <h1>麻雀<span>点数計算</span>練習問題</h1>
               <input className={styles.next_button} type="button" value="次の問題" onClick={e=> initialize()}/>
             </div>
-            {error &&
+            {error==404 &&
+              <p>データが見つからなかった...</p>
+            }
+            {error!=404 && !!error &&
               <p>サーバにデータの読み込みができなかった...</p>
             }
             {!initialized && !error &&

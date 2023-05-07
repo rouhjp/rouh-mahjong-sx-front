@@ -105,11 +105,16 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
             console.log('connected');
             client.query(query, (err, result)=>{
                 if(err || !result){
-                    console.log(err);
-                    return EMPTY_QUESTION_RESPONSE;
-                }
-                
+                    console.log("something went wrong", err);
+                    res.status(500).send(EMPTY_QUESTION_RESPONSE);
+                    return;
+                }   
                 var data = result.rows[0];
+                if(!data){
+                    console.log("not found");
+                    res.status(404).send(EMPTY_QUESTION_RESPONSE);
+                    return;
+                }
                 console.log(data);
                 var openMeldsExpression:string = data.open_melds;
                 var openMelds:Meld[] = !openMeldsExpression?[]:Object.values(openMeldsExpression.split(",")).map(openMeldExpression => {
