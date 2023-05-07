@@ -269,9 +269,9 @@ export default function Home() {
                     </tr>
                   </>
                   const selected_step_index = (()=>{
-                    var index = Object.values(doubles_steps).findIndex(step=>step>=question.score.doubles);
+                    var index = Object.values(doubles_steps).findIndex(step=>step>question.score.doubles);
                     if(index==-1) return doubles_steps.length - 1;
-                    return index;
+                    return index -1;
                   })();
                   const doubles_step_texts =
                     Object.values(doubles_steps).map((step, index)=>{
