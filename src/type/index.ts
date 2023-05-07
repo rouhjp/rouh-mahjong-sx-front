@@ -9,7 +9,7 @@ export const EMPTY_QUESTION_RESPONSE: QuestionResponse = {
       lower_indicators: [],
       is_tsumo: false,
       is_ready: false,
-      is_frist_around_ready: false,
+      is_first_around_ready: false,
       is_first_around_win: false,
       is_ready_around_win: false,
       is_last_tile_win: false,
