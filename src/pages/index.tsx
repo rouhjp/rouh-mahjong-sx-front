@@ -193,7 +193,13 @@ export default function Home() {
                   </select>
                 </div>
                 <div>
-                  <input className={styles.guess_score} value={guessScore} onChange={e => setGuessScore(parseInt(e.target.value) || 0)}></input>
+                  <input className={styles.guess_score} value={guessScore}
+                    onChange={e => setGuessScore(parseInt(e.target.value) || 0)}
+                    onKeyDown={e => {
+                      if (e.key=='Enter'){
+                        setAnswer({point:guessPoint, doubles:guessDoubles, limit:guessLimit, score:guessScore})
+                      }
+                    }}></input>
                   <span>点</span>
                 </div>
                 <div>
