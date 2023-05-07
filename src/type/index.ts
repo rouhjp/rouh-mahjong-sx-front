@@ -49,7 +49,7 @@ export type Situation = {
     lower_indicators: string[],
     is_tsumo: boolean,
     is_ready: boolean,
-    is_frist_around_ready: boolean,
+    is_first_around_ready: boolean,
     is_first_around_win: boolean,
     is_ready_around_win: boolean,
     is_last_tile_win: boolean,

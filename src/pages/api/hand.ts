@@ -80,6 +80,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
 	        	FROM HAND_SCORE_POINT_TYPE hspt
 	        	GROUP BY hspt.HAND_ID
 	        ) hsptg ON hs.HAND_ID = hsptg.HAND_ID 
+        WHERE h.HAND_ID = '458'
         --WHERE h.IS_TSUMO = FALSE
         --AND h.SEAT_WIND <> 'E'
         ORDER BY RANDOM()
@@ -153,7 +154,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
                         lower_indicators: data.lower_indicators?data.lower_indicators.split("/"):[],
                         is_tsumo: data.is_tsumo,
                         is_ready: data.is_ready,
-                        is_frist_around_ready: data.is_first_round_ready,
+                        is_first_around_ready: data.is_first_around_ready,
                         is_first_around_win: data.is_first_around_win,
                         is_ready_around_win: data.is_ready_around_win,
                         is_last_tile_win: data.is_last_tile_win,

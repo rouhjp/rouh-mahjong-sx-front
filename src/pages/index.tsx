@@ -26,6 +26,7 @@ export default function Home() {
     setInitialized(false);
     axios.get("api/hand").then((response) => {
       const data = response.data;
+      console.log("first around ready?"+data.situation.is_first_around_ready)
       setQuestion(data);
       setGuessPoint(0);
       setGuessDoubles(0);
@@ -75,10 +76,10 @@ export default function Home() {
                     <li>{question.situation.is_tsumo?"ツモ":"ロン"}</li>
                   </ul>
                   <ul className={styles.options}>
-                    {question.situation.is_frist_around_ready &&
+                    {question.situation.is_first_around_ready &&
                       <li>ダブル立直</li>
                     }
-                    {!question.situation.is_frist_around_ready && question.situation.is_ready &&
+                    {!question.situation.is_first_around_ready && question.situation.is_ready &&
                       <li>立直</li>
                     }
                     {question.situation.is_first_around_win && question.situation.is_tsumo && question.situation.seat_wind=="E" &&
