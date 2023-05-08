@@ -2,7 +2,7 @@ import Head from 'next/head'
 import styles from '@/styles/Question.module.css'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import type {QuestionResponse} from '@/type'
+import {QuestionResponse} from '@/type'
 import {EMPTY_QUESTION_RESPONSE} from '@/type'
 
 type Answer = {
@@ -22,9 +22,20 @@ export default function Home() {
   const [guessScore, setGuessScore] = useState<number>(0);
   const [answer, setAnswer] = useState<Answer>();
 
+  const [showCondition, setShowCondition] = useState<boolean>(false);
+  const [playerType, setPlayerType] = useState<string>("");
+  const [winningType, setWinningType] = useState<string>("");
+  const [doublesLower, setDoublesLower] = useState<number>(0);
+  const [doublesUpper, setDoublesUpper] = useState<number>(0);
+
   const initialize = ()=> {
     setInitialized(false);
-    axios.get("api/hand").then((response) => {
+    const end_point = "api/hand";
+    const parameters = "?winning_type="+winningType
+      + "&player_type="+playerType
+      + "&doubles_lower="+doublesLower
+      + "&doubles_upper="+doublesUpper;
+    axios.get(end_point+parameters).then((response) => {
       const data = response.data;
       console.log("first around ready?"+data.situation.is_first_around_ready)
       setQuestion(data);
@@ -60,6 +71,54 @@ export default function Home() {
               <h1>麻雀<span>点数計算</span>練習問題</h1>
               <input className={styles.next_button} type="button" value="次の問題" onClick={e=> initialize()}/>
             </div>
+            <p className={styles.setting_button} onClick={e=> setShowCondition(!showCondition)}>{showCondition?"▼ 出題条件":"▶ 出題条件"}</p>
+            {showCondition &&
+              <div className={styles.setting_area}>
+                <div>
+                  <select onChange={e => setPlayerType(e.target.value)}>
+                    <option value="all">全て</option>
+                    <option value="dealer">親</option>
+                    <option value="others">子</option>
+                  </select>
+                </div>
+                <div>
+                  <select onChange={e => setWinningType(e.target.value)}>
+                    <option value="all">全て</option>
+                    <option value="tsumo">ツモ</option>
+                    <option value="ron">ロン</option>
+                  </select>
+                </div>
+                <div>
+                  <select onChange={e=>{
+                    const new_doubles_lower = parseInt(e.target.value) || 0;
+                    const new_doubles_upper = new_doubles_lower==0?doublesUpper:(doublesUpper==0?0:Math.max(new_doubles_lower, doublesUpper));
+                    setDoublesLower(new_doubles_lower);
+                    setDoublesUpper(new_doubles_upper);
+                  }}>
+                    <option key={0}></option>
+                    {Array.from(Array(13).keys()).map((index)=>{
+                      return <option selected={doublesLower==(index + 1)} key={index + 1} value={index + 1}>{index + 1}</option>
+                    })}
+                  </select>
+                  <span>飜以上</span>
+                </div>
+                <div>
+                  <select onChange={e=>{
+                    const new_doubles_upper = parseInt(e.target.value) || 0;
+                    const new_doubles_lower = new_doubles_upper==0?doublesLower:(doublesLower==0?0:Math.min(new_doubles_upper, doublesLower));
+                    setDoublesLower(new_doubles_lower);
+                    setDoublesUpper(new_doubles_upper);
+                  }}>
+                    <option key={0} value={0}></option>
+                    {Array.from(Array(13).keys()).map((index)=>{
+                        return <option selected={doublesUpper==(index + 1)} key={index + 1} value={index + 1}>{index + 1}</option>
+                      })
+                    }
+                  </select>
+                  <span>飜以下</span>
+                </div>
+              </div>
+            }
             {error==404 &&
               <p>データが見つからなかった...</p>
             }
@@ -279,7 +338,8 @@ export default function Home() {
                     </tr>
                   </>
                   const selected_step_index = (()=>{
-                    var index = Object.values(doubles_steps).findIndex(step=>step>question.score.doubles);
+                    var effective_doubles = question.score.is_hand_limit?13:question.score.doubles;
+                    var index = Object.values(doubles_steps).findIndex(step=>step>effective_doubles);
                     if(index==-1) return doubles_steps.length - 1;
                     return index -1;
                   })();
@@ -322,8 +382,6 @@ export default function Home() {
               </div>
             </div>
           }
-
-          
           <div className={styles.footer}>
             <p>開発者: 運輸犬 <a href="https://twitter.com/kawaiiseeker" target="_blank" rel="noopener noreferrer">@kawaiiseeker</a></p>
             <p>お金に余裕がある方はアマギフ買ってくれるとサーバ代の足しになります: <a href="https://www.amazon.jp/hz/wishlist/ls/1Z5ETCS6OKYOE?ref_=wl_share">ほしいものリスト</a></p>

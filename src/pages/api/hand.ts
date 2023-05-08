@@ -3,6 +3,27 @@ import {QuestionResponse, Meld, Score, EMPTY_QUESTION_RESPONSE} from '@/type'
 import { Client } from 'pg'
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<QuestionResponse>){
+    const winning_type:string = typeof req.query.winning_type=="string"? req.query.winning_type:"";
+    const player_type:string = typeof req.query.player_type=="string"? req.query.player_type:"";
+    const doubles_lower:number = typeof req.query.doubles_lower=="string" && parseInt(req.query.doubles_lower) || 0;
+    const doubles_upper:number = typeof req.query.doubles_upper=="string" && parseInt(req.query.doubles_upper) || 0;
+
+    console.log("winning_type: "+winning_type);
+    console.log("player_type: "+player_type);
+    console.log("doubles_lower: "+doubles_lower);
+    console.log("doubles_upper: "+doubles_upper);
+
+    const where_query = ((winning_type:string, player_type:string, doubles_lower:number, doubles_upper:number):string => {
+        const winning_type_condition = winning_type=="tsumo"?"h.IS_TSUMO = TRUE":winning_type=="ron"?"h.IS_TSUMO = FALSE":"";
+        const player_type_condition = player_type=="dealer"?"h.SEAT_WIND = 'E'":player_type=="others"?"h.SEAT_WIND <> 'E'":"";
+        const lower_condition = (doubles_lower>0 && Number.isInteger(doubles_lower))? "CASE WHEN hs.IS_HAND_LIMIT THEN 13 ELSE hs.DOUBLES END >= "+doubles_lower:"";
+        const upper_condition = (doubles_upper>0 && Number.isInteger(doubles_upper))? "CASE WHEN hs.IS_HAND_LIMIT THEN 13 ELSE hs.DOUBLES END <= "+doubles_upper:"";
+        const all_conditions = Object.values([winning_type_condition, player_type_condition, lower_condition, upper_condition])
+            .filter(condition => !!condition).join(" AND ");
+        return all_conditions? "WHERE "+all_conditions:"";
+    })(winning_type, player_type, doubles_lower, doubles_upper);
+
+    console.log(where_query);
 
     const query = `
         SELECT
@@ -80,8 +101,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
 	        	FROM HAND_SCORE_POINT_TYPE hspt
 	        	GROUP BY hspt.HAND_ID
 	        ) hsptg ON hs.HAND_ID = hsptg.HAND_ID 
-        --WHERE h.IS_TSUMO = FALSE
-        --AND h.SEAT_WIND <> 'E'
+    `+ where_query +`
         ORDER BY RANDOM()
         FETCH FIRST 1 ROWS ONLY
     `;
