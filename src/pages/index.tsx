@@ -37,7 +37,6 @@ export default function Home() {
       + "&doubles_upper="+doublesUpper;
     axios.get(end_point+parameters).then((response) => {
       const data = response.data;
-      console.log("first around ready?"+data.situation.is_first_around_ready)
       setQuestion(data);
       setGuessPoint(0);
       setGuessDoubles(0);
@@ -94,10 +93,10 @@ export default function Home() {
                     const new_doubles_upper = new_doubles_lower==0?doublesUpper:(doublesUpper==0?0:Math.max(new_doubles_lower, doublesUpper));
                     setDoublesLower(new_doubles_lower);
                     setDoublesUpper(new_doubles_upper);
-                  }}>
+                  }} value={doublesLower}>
                     <option key={0}></option>
                     {Array.from(Array(13).keys()).map((index)=>{
-                      return <option selected={doublesLower==(index + 1)} key={index + 1} value={index + 1}>{index + 1}</option>
+                      return <option key={index + 1} value={index + 1}>{index + 1}</option>
                     })}
                   </select>
                   <span>飜以上</span>
@@ -108,10 +107,10 @@ export default function Home() {
                     const new_doubles_lower = new_doubles_upper==0?doublesLower:(doublesLower==0?0:Math.min(new_doubles_upper, doublesLower));
                     setDoublesLower(new_doubles_lower);
                     setDoublesUpper(new_doubles_upper);
-                  }}>
+                  }} value={doublesUpper}>
                     <option key={0} value={0}></option>
                     {Array.from(Array(13).keys()).map((index)=>{
-                        return <option selected={doublesUpper==(index + 1)} key={index + 1} value={index + 1}>{index + 1}</option>
+                        return <option key={index + 1} value={index + 1}>{index + 1}</option>
                       })
                     }
                   </select>
