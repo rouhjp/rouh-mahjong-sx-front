@@ -161,7 +161,7 @@ export default function Home() {
                     {question.situation.is_last_tile_win && question.situation.is_tsumo &&
                       <li>海底摸月</li>
                     }
-                    {question.situation.is_last_tile_win && question.situation.is_tsumo &&
+                    {question.situation.is_last_tile_win && !question.situation.is_tsumo &&
                       <li>河底撈魚</li>
                     }
                   </ul>
