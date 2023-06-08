@@ -1,26 +1,32 @@
 import Head from 'next/head'
 import styles from '@/styles/Question.module.css'
 import { useEffect, useState } from 'react'
-import axios from 'axios'
-import {QuestionResponse} from '@/type'
-import {EMPTY_QUESTION_RESPONSE} from '@/type'
+import axios, { AxiosResponse } from 'axios'
+import {Hand, QuestionResponse, Score} from '@/type'
+import {EMPTY_HAND, EMPTY_SCORE} from '@/type'
 
 type Answer = {
   point: number,
   doubles: number,
   limit: string,
-  score: number
+  score: number,
+}
+
+const EMPTY_ANSWER: Answer = {
+  point: 0,
+  doubles: 0,
+  limit: "",
+  score: 0
 }
 
 export default function Home() {
   const [error, setError] = useState<number>(0);
   const [initialized, setInitialized] = useState<boolean>(false);
-  const [question, setQuestion] = useState<QuestionResponse>(EMPTY_QUESTION_RESPONSE);
-  const [guessPoint, setGuessPoint] = useState<number>(0);
-  const [guessDoubles, setGuessDoubles] = useState<number>(0);
-  const [guessLimit, setGuessLimit] = useState<string>("");
-  const [guessScore, setGuessScore] = useState<number>(0);
-  const [answer, setAnswer] = useState<Answer>();
+  const [hand, setHand] = useState<Hand>(EMPTY_HAND);
+  const [correctScore, setCorrectScore] = useState<Score>(EMPTY_SCORE);
+
+  const [answer, setAnswer] = useState<Answer>(EMPTY_ANSWER);
+  const [answered, setAnswered] = useState<boolean>(false);
 
   const [showCondition, setShowCondition] = useState<boolean>(false);
   const [playerType, setPlayerType] = useState<string>("");
@@ -35,14 +41,14 @@ export default function Home() {
       + "&player_type="+playerType
       + "&doubles_lower="+doublesLower
       + "&doubles_upper="+doublesUpper;
-    axios.get(end_point+parameters).then((response) => {
-      const data = response.data;
-      setQuestion(data);
-      setGuessPoint(0);
-      setGuessDoubles(0);
-      setGuessLimit("");
-      setGuessScore(0);
-      setAnswer(undefined);
+    axios.get(end_point+parameters).then((response: AxiosResponse<QuestionResponse>) => {
+      const data :QuestionResponse = response.data;
+      console.log("debug code: "+data.hand_id);
+      console.log(data.hand);
+      setHand(data.hand);
+      setCorrectScore(data.score);
+      setAnswer(EMPTY_ANSWER);
+      setAnswered(false);
       setInitialized(true);
       setError(0);
     })
@@ -131,37 +137,37 @@ export default function Home() {
               <>
                 <div>
                   <ul className={styles.situations}>
-                    <li>場風:{get_wind_text(question.situation.round_wind)}</li>
-                    <li>自風:{get_wind_text(question.situation.seat_wind)}</li>
-                    <li>{question.situation.seat_wind=="E"?"親":"子"}</li>
-                    <li>{question.situation.is_tsumo?"ツモ":"ロン"}</li>
+                    <li>場風:{get_wind_text(hand.situation.round_wind)}</li>
+                    <li>自風:{get_wind_text(hand.situation.seat_wind)}</li>
+                    <li>{hand.situation.seat_wind=="EAST"?"親":"子"}</li>
+                    <li>{hand.situation.tsumo?"ツモ":"ロン"}</li>
                   </ul>
                   <ul className={styles.options}>
-                    {question.situation.is_first_around_ready &&
+                    {hand.situation.first_around_ready &&
                       <li>ダブル立直</li>
                     }
-                    {!question.situation.is_first_around_ready && question.situation.is_ready &&
+                    {!hand.situation.first_around_ready && hand.situation.ready &&
                       <li>立直</li>
                     }
-                    {question.situation.is_first_around_win && question.situation.is_tsumo && question.situation.seat_wind=="E" &&
+                    {hand.situation.first_around_win && hand.situation.tsumo && hand.situation.seat_wind=="EAST" &&
                       <li>天和</li>
                     }
-                    {question.situation.is_first_around_win && question.situation.is_tsumo && question.situation.seat_wind!="E" &&
+                    {hand.situation.first_around_win && hand.situation.tsumo && hand.situation.seat_wind!="EAST" &&
                       <li>地和</li>
                     }
-                    {question.situation.is_ready_around_win &&
+                    {hand.situation.ready_around_win &&
                       <li>一発</li>
                     }
-                    {question.situation.is_quad_tile_win &&
+                    {hand.situation.quad_tile_win &&
                       <li>槍槓</li>
                     }
-                    {question.situation.is_quad_turn_win &&
+                    {hand.situation.quad_turn_win &&
                       <li>嶺上開花</li>
                     }
-                    {question.situation.is_last_tile_win && question.situation.is_tsumo &&
+                    {hand.situation.last_tile_win && hand.situation.tsumo &&
                       <li>海底摸月</li>
                     }
-                    {question.situation.is_last_tile_win && !question.situation.is_tsumo &&
+                    {hand.situation.last_tile_win && !hand.situation.tsumo &&
                       <li>河底撈魚</li>
                     }
                   </ul>
@@ -169,17 +175,17 @@ export default function Home() {
                 <div>
                   <ul className={styles.hand_tiles}>
                     {
-                      Object.values(question.hand_tiles).map((hand_tile, index) => {
+                      Object.values([...hand.hand_tiles, hand.winning_tile]).map((hand_tile, index) => {
                         return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand_tile+".jpg"}/></li>;
                       })
                     }
                   </ul>
-                  {question.melds.length>0 && 
+                  {hand.open_melds.length>0 && 
                     <>
                       <p className={`${styles.guide} ${styles.sp_only}`}>副露</p>
-                      {Object.values(question.melds).map((meld, meld_index) => 
+                      {Object.values(hand.open_melds).map((meld, meld_index) => 
                         <ul key={meld_index} className={styles.meld_tiles}>
-                          {meld.call_from=='S' &&
+                          {meld.call_from=="SELF" &&
                             <>
                               <li key={0}><img className={styles.tile_image} src={"tiles/back.jpg"}/></li>
                               <li key={1}><img className={styles.tile_image} src={"tiles/"+meld.meld_tiles[1]+".jpg"}/></li>
@@ -187,7 +193,7 @@ export default function Home() {
                               <li key={3}><img className={styles.tile_image} src={"tiles/back.jpg"}/></li>
                             </>
                           }
-                          {meld.call_from!='S' &&
+                          {meld.call_from!="SELF" &&
                             Object.values(meld.meld_tiles).map((meld_tile, tile_index) => {
                               return <li key={meld_index + '-' +tile_index}><img className={styles.tile_image} src={"tiles/"+meld_tile+".jpg"}/></li>;
                             })
@@ -201,18 +207,18 @@ export default function Home() {
                 <div>
                   <ul className={styles.upper_indicators}>
                     {Array.from(Array(5).keys()).map((index)=>{
-                      if(index < question.situation.upper_indicators.length){
-                        return <li key={index}><img className={styles.tile_image} src={"tiles/"+question.situation.upper_indicators[index]+".jpg"} /></li>
+                      if(index < hand.situation.upper_indicators.length){
+                        return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand.situation.upper_indicators[index]+".jpg"} /></li>
                       }else{
                         return <li key={index}><img className={styles.tile_image} src={"tiles/back.jpg"} /></li>
                       }
                     })}
                   </ul>
-                  {question.situation.lower_indicators.length > 0 &&
+                  {hand.situation.lower_indicators.length > 0 &&
                     <ul className={styles.lower_indicators}>
                       {Array.from(Array(5).keys()).map((index)=>{
-                        if(index < question.situation.lower_indicators.length){
-                          return <li key={index}><img className={styles.tile_image} src={"tiles/"+question.situation.lower_indicators[index]+".jpg"} /></li>
+                        if(index < hand.situation.lower_indicators.length){
+                          return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand.situation.lower_indicators[index]+".jpg"} /></li>
                         }else{
                           return <li key={index}><img className={styles.tile_image} src={"tiles/back.jpg"} /></li>
                         }
@@ -227,7 +233,7 @@ export default function Home() {
             <div className={styles.container}>
               <div className={styles.answer_area}>
                 <div>
-                  <select value={guessPoint} onChange={e => setGuessPoint(parseInt(e.target.value) || 0)}>
+                  <select value={answer.point} onChange={e => setAnswer({...answer, point:parseInt(e.target.value) || 0})}>
                     <option value="0"></option>
                     {Object.values([20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110]).map((point, index)=>{
                         return <option key={index} value={point}>{point}</option>
@@ -237,7 +243,7 @@ export default function Home() {
                   <span>符</span>
                 </div>
                 <div>
-                  <select value={guessDoubles} onChange={e => setGuessDoubles(parseInt(e.target.value) || 0)}>
+                  <select value={answer.doubles} onChange={e => setAnswer({...answer, doubles:parseInt(e.target.value) || 0})}>
                     <option value="0"></option>
                     {Array.from(Array(15).keys()).map((index)=>{
                         return <option key={index} value={index + 1}>{index + 1}</option>
@@ -247,7 +253,7 @@ export default function Home() {
                   <span>飜</span>
                 </div>
                 <div className={styles.limit_box}>
-                  <select value={guessLimit} onChange={e => setGuessLimit(e.target.value)}>
+                  <select value={answer.limit} onChange={e => setAnswer({...answer, limit:e.target.value})}>
                     {Object.values(["", "満貫", "跳満", "倍満", "三倍満", "役満", "二倍役満", "三倍役満", "四倍役満"]).map((limit, index)=>{
                         return <option key={index} value={limit}>{limit}</option>
                       })
@@ -255,65 +261,65 @@ export default function Home() {
                   </select>
                 </div>
                 <div>
-                  <input className={styles.guess_score} value={guessScore}
-                    onChange={e => setGuessScore(parseInt(e.target.value) || 0)}
+                  <input className={styles.guess_score} value={answer.score}
+                    onChange={e => setAnswer({...answer, score:parseInt(e.target.value) || 0})}
                     onKeyDown={e => {
                       if (e.key=='Enter'){
-                        setAnswer({point:guessPoint, doubles:guessDoubles, limit:guessLimit, score:guessScore})
+                        setAnswered(true)
                       }
                     }}></input>
                   <span>点</span>
                 </div>
                 <div>
-                  {question.situation.is_tsumo && question.situation.seat_wind!="E" &&
-                    <span>{'('}{Math.ceil(guessScore/4/100)*100}点/{Math.ceil(guessScore/2/100)*100}点{')'}</span>
+                  {hand.situation.tsumo && hand.situation.seat_wind!="EAST" &&
+                    <span>{'('}{Math.ceil((answer.score || 0)/4/100)*100}点/{Math.ceil((answer.score || 0)/2/100)*100}点{')'}</span>
                   }
-                  {question.situation.is_tsumo && question.situation.seat_wind=="E" &&
-                    <span>{'('}{Math.ceil(guessScore/3/100)*100}点オール{')'}</span>
+                  {hand.situation.tsumo && hand.situation.seat_wind=="EAST" &&
+                    <span>{'('}{Math.ceil((answer.score || 0)/3/100)*100}点オール{')'}</span>
                   }
                 </div>
-                <input type="button" value="回答する" onClick={e => setAnswer({point:guessPoint, doubles:guessDoubles, limit:guessLimit, score:guessScore})}></input>
+                <input type="button" value="回答する" onClick={e => setAnswered(true)}></input>
               </div>
               <p className={styles.note}>※点数が一致すれば正解となります</p>
             </div>
           }
-          {initialized && answer &&
+          {initialized && answered &&
             <div className={styles.container}>
-              {(answer.score == question.score.score || answer.score == question.score.adjusted_score)?(
+              {(answer.score===correctScore.score || answer.score===correctScore.adjusted_score)?(
                 <h2 className={styles.answer_result}>正解！</h2>
               ):(
                 <h2 className={styles.answer_result}>不正解...</h2>
               )}
               <div className={styles.score_expression}>
-                {question.score.point>0 &&
-                  <span>{question.score.point}符</span>
+                {correctScore.point>0 &&
+                  <span>{correctScore.point}符</span>
                 }
-                {question.score.doubles>0 &&
-                  <span>{question.score.doubles}飜</span>
+                {correctScore.doubles>0 &&
+                  <span>{correctScore.doubles}飜</span>
                 }
-                {question.score.limit_type &&
-                  <span>{question.score.limit_type}</span>
+                {correctScore.limit_type &&
+                  <span>{correctScore.limit_type}</span>
                 }
-                <span>{question.score.score}点</span>
-                {question.situation.is_tsumo && question.situation.seat_wind!="E" &&
-                  <span>{'('}{Math.ceil(question.score.score/4/100)*100}点/{Math.ceil(question.score.score/2/100)*100}点{')'}</span>
+                <span>{correctScore.score}点</span>
+                {hand.situation.tsumo && hand.situation.seat_wind!="EAST" &&
+                  <span>{'('}{Math.ceil(correctScore.score/4/100)*100}点/{Math.ceil(correctScore.score/2/100)*100}点{')'}</span>
                 }
-                {question.situation.is_tsumo && question.situation.seat_wind=="E" &&
-                  <span>{'('}{Math.ceil(question.score.score/3/100)*100}点オール{')'}</span>
+                {hand.situation.tsumo && hand.situation.seat_wind=="EAST" &&
+                  <span>{'('}{Math.ceil(correctScore.score/3/100)*100}点オール{')'}</span>
                 }
               </div>
               <div className={styles.type_table}>
                 <ul className={styles.hand_types}>
-                  {Object.values(question.score.hand_types).map((hand_type, index)=>
+                  {Object.values(correctScore.hand_types).map((hand_type, index)=>
                     <li key={index}>
                       <div className={styles.hand_type_name}>{hand_type.name}</div>
                       <div className={styles.hand_type_grade}>{get_grade_text(hand_type.grade)}</div>
                     </li>
                   )}
                 </ul>
-                {question.score.point_types.length>0 &&
+                {correctScore.point_types.length>0 &&
                   <ul className={styles.point_types}>
-                    {Object.values(question.score.point_types).map((point_type, index)=>
+                    {Object.values(correctScore.point_types).map((point_type, index)=>
                       <li key={index}>
                         <div className={styles.point_type_name}>{point_type.name}</div>
                         <div className={styles.point_type_point}>{point_type.point}</div>
@@ -329,15 +335,15 @@ export default function Home() {
                   const point_headers = <>
                     <tr>
                       <th>
-                        {question.situation.seat_wind=="E"?"親":"子"}
+                        {hand.situation.seat_wind=="EAST"?"親":"子"}
                       </th>
                       {Object.values(point_steps).map((point_step, index)=>
-                        <th key={index} className={point_step==question.score.point?styles.selected:""}>{point_step}符</th>
+                        <th key={index} className={point_step==correctScore.point?styles.selected:""}>{point_step}符</th>
                       )}
                     </tr>
                   </>
                   const selected_step_index = (()=>{
-                    var effective_doubles = question.score.is_hand_limit?13:question.score.doubles;
+                    var effective_doubles = correctScore.hand_limit?13:correctScore.doubles;
                     var index = Object.values(doubles_steps).findIndex(step=>step>effective_doubles);
                     if(index==-1) return doubles_steps.length - 1;
                     return index -1;
@@ -352,7 +358,7 @@ export default function Home() {
                       }
                       return step+"-"+(doubles_steps[index + 1] - 1)+"飜";
                     })
-                  const score_map = Object.values(doubles_steps).map(doubles=>Object.values(point_steps).map(point=>get_score(point, doubles, question.score.is_dealer)));
+                  const score_map = Object.values(doubles_steps).map(doubles=>Object.values(point_steps).map(point=>get_score(point, doubles, correctScore.dealer)));
                   const table_content = Object.values(doubles_steps).map((doubles, row_index)=>
                     <tr key={row_index}>
                       <th className={row_index==selected_step_index?styles.selected:""}>{doubles_step_texts[row_index]}</th>
@@ -383,7 +389,7 @@ export default function Home() {
           }
           <div className={styles.footer}>
             <p>開発者: 運輸犬 <a href="https://twitter.com/kawaiiseeker" target="_blank" rel="noopener noreferrer">@kawaiiseeker</a></p>
-            <p>お金に余裕がある方はアマギフ買ってくれるとサーバ代の足しになります: <a href="https://www.amazon.jp/hz/wishlist/ls/1Z5ETCS6OKYOE?ref_=wl_share">ほしいものリスト</a></p>
+            {/*<p>お金に余裕がある方はアマギフ買ってくれるとサーバ代の足しになります: <a href="https://www.amazon.jp/hz/wishlist/ls/1Z5ETCS6OKYOE?ref_=wl_share">ほしいものリスト</a></p>*/}
           </div>
         </div>
       </main>      
@@ -402,8 +408,8 @@ const get_limit_type = (point :number, doubles :number):string => {
   return "";
 }
 
-const get_score = (point :number, doubles :number, is_dealer:boolean):number => {
-  const multiplier = is_dealer?6:4;
+const get_score = (point :number, doubles :number, dealer:boolean):number => {
+  const multiplier = dealer?6:4;
   if(doubles>=13) return 8000*multiplier;
   if(doubles>=11) return 6000*multiplier;
   if(doubles>=8) return 4000*multiplier;
@@ -415,9 +421,9 @@ const get_score = (point :number, doubles :number, is_dealer:boolean):number => 
 
 const get_grade_text = (code :string):string => {
   switch (code) {
-    case 'S':
+    case "S":
       return "役満";
-    case 'W':
+    case "W":
       return "ダブル役満";
     default:
       return code + "飜";
@@ -426,13 +432,13 @@ const get_grade_text = (code :string):string => {
 
 const get_wind_text = (code :string):string => {
   switch (code) {
-    case "E":
+    case "EAST":
       return "東";
-    case "S":
+    case "SOUTH":
       return "南";
-    case "W":
+    case "WEST":
       return "西";
-    case "N":
+    case "NORTH":
       return "北";
     default:
       return "";

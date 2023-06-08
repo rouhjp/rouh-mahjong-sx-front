@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import {QuestionResponse, Meld, Score, EMPTY_QUESTION_RESPONSE} from '@/type'
+import {QuestionResponse, Meld, Score, Wind, Side, Tile, isTile, EMPTY_QUESTION_RESPONSE} from '@/type'
 import { Client } from 'pg'
 
 export default function handler(req: NextApiRequest, res: NextApiResponse<QuestionResponse>){
@@ -28,7 +28,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
     const query = `
         SELECT
             h.HAND_ID,
-            htg.HAND_TILES,
+            htg.ALL_TILES,
             hmg.OPEN_MELDS,
             h.ROUND_WIND,
             h.SEAT_WIND,
@@ -55,7 +55,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
         FROM HAND h
         LEFT JOIN (SELECT
                     ht.HAND_ID,
-                    STRING_AGG(ht.TILE, '/' ORDER BY ht.TILE_ORDINAL) AS HAND_TILES
+                    STRING_AGG(ht.TILE, '/' ORDER BY ht.TILE_ORDINAL) AS ALL_TILES
                 FROM HAND_TILE ht
                 GROUP BY ht.HAND_ID
             ) htg ON h.HAND_ID = htg.HAND_ID 
@@ -106,6 +106,33 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
         FETCH FIRST 1 ROWS ONLY
     `;
 
+    const to_side = (code:string):Side=>{
+        switch(code){
+            case "S": return "SELF"
+            case "R": return "RIGHT"
+            case "A": return "ACROSS"
+            case "L": return "LEFT"
+            default: throw new Error("parse error: side="+code)
+        }
+    }
+
+    const to_wind = (code:string):Wind=>{
+        switch(code){
+            case "E": return "EAST";
+            case "S": return "SOUTH";
+            case "W": return "WEST";
+            case "N": return "NORTH";
+            default: throw new Error("parse error: wind="+code);
+        }
+    }
+
+    const to_tile = (tile:string):Tile=>{
+        if(isTile(tile)){
+            return tile;
+        }
+        throw new Error("parse error: tile="+tile);
+    }
+
     console.log("DB_USER="+process.env.DB_USER);
     console.log("DB_PASS="+process.env.DB_PASS);
     console.log("DB_HOST="+process.env.DB_HOST);
@@ -129,30 +156,30 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
                     res.status(500).send(EMPTY_QUESTION_RESPONSE);
                     return;
                 }   
-                var data = result.rows[0];
+                const data = result.rows[0];
                 if(!data){
                     console.log("not found");
                     res.status(404).send(EMPTY_QUESTION_RESPONSE);
                     return;
                 }
                 console.log(data);
-                var openMeldsExpression:string = data.open_melds;
-                var openMelds:Meld[] = !openMeldsExpression?[]:Object.values(openMeldsExpression.split(",")).map(openMeldExpression => {
+                const openMeldsExpression:string = data.open_melds;
+                const openMelds:Meld[] = !openMeldsExpression?[]:Object.values(openMeldsExpression.split(",")).map(openMeldExpression => {
                     return {
-                        meld_tiles: openMeldExpression.split(":")[0].split("/"),
-                        call_from: openMeldExpression.split(":")[1]
+                        meld_tiles: openMeldExpression.split(":")[0].split("/").map(to_tile),
+                        call_from: to_side(openMeldExpression.split(":")[1])
                     }
                 });
-                var handTypesExpression:string = data.hand_types;
-                var pointTypesExpression:string = data.point_types;
-                var score:Score = {
+                const handTypesExpression:string = data.hand_types;
+                const pointTypesExpression:string = data.point_types;
+                const score:Score = {
                     point: data.point,
                     doubles: data.doubles,
                     score: data.score,
                     adjusted_score: data.adjusted_score,
                     limit_type: data.limit_type,
-                    is_dealer: data.is_dealer,
-                    is_hand_limit: data.is_hand_limit,
+                    dealer: data.is_dealer,
+                    hand_limit: data.is_hand_limit,
                     hand_types: Object.values(handTypesExpression.split(",")).map(handTypeExpression => {
                         return {
                             name: handTypeExpression.split(":")[0],
@@ -162,28 +189,33 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
                     point_types: !pointTypesExpression?[]:Object.values(pointTypesExpression.split(",")).map(pointTypesExpression => {
                         return {
                             name: pointTypesExpression.split(":")[0],
-                            point: pointTypesExpression.split(":")[1]
+                            point: parseInt(pointTypesExpression.split(":")[1]) || 0
                         }
                     })
                 }
+
+                const all_tiles = data.all_tiles.split("/");
                 
                 res.status(200).json({ 
                     hand_id: data.hand_id,
-                    hand_tiles: data.hand_tiles.split("/"),
-                    melds: openMelds,
-                    situation: {
-                        round_wind: data.round_wind,
-                        seat_wind: data.seat_wind,
-                        upper_indicators: data.upper_indicators?data.upper_indicators.split("/"):[],
-                        lower_indicators: data.lower_indicators?data.lower_indicators.split("/"):[],
-                        is_tsumo: data.is_tsumo,
-                        is_ready: data.is_ready,
-                        is_first_around_ready: data.is_first_around_ready,
-                        is_first_around_win: data.is_first_around_win,
-                        is_ready_around_win: data.is_ready_around_win,
-                        is_last_tile_win: data.is_last_tile_win,
-                        is_quad_tile_win: data.is_quad_tile_win,
-                        is_quad_turn_win: data.is_quad_turn_win
+                    hand:{
+                        hand_tiles: all_tiles.slice(0, all_tiles.length-1).map(to_tile),
+                        winning_tile: to_tile(all_tiles.pop()),
+                        open_melds: openMelds,
+                        situation: {
+                            round_wind: to_wind(data.round_wind),
+                            seat_wind: to_wind(data.seat_wind),
+                            upper_indicators: data.upper_indicators?data.upper_indicators.split("/"):[],
+                            lower_indicators: data.lower_indicators?data.lower_indicators.split("/"):[],
+                            tsumo: data.is_tsumo,
+                            ready: data.is_ready,
+                            first_around_ready: data.is_first_around_ready,
+                            first_around_win: data.is_first_around_win,
+                            ready_around_win: data.is_ready_around_win,
+                            last_tile_win: data.is_last_tile_win,
+                            quad_tile_win: data.is_quad_tile_win,
+                            quad_turn_win: data.is_quad_turn_win
+                        }
                     },
                     score: score
                  })

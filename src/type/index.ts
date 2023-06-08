@@ -1,60 +1,74 @@
+import { ValueOf } from "next/dist/shared/lib/constants"
+
+export const EMPTY_HAND: Hand = {
+    hand_tiles: [],
+    open_melds: [],
+    winning_tile: "",
+    situation: {
+        round_wind: "EAST",
+        seat_wind: "EAST",
+        upper_indicators: [],
+        lower_indicators: [],
+        tsumo: false,
+        ready: false,
+        first_around_ready: false,
+        first_around_win: false,
+        ready_around_win: false,
+        last_tile_win: false,
+        quad_tile_win: false,
+        quad_turn_win: false
+    }
+}
+
+export const EMPTY_SCORE: Score = {
+    point: 0,
+    doubles: 0,
+    score: 0,
+    adjusted_score: 0,
+    limit_type: "",
+    dealer: false,
+    hand_limit: false,
+    hand_types: [],
+    point_types: []
+}
+
 export const EMPTY_QUESTION_RESPONSE: QuestionResponse = {
     hand_id: -1,
-    hand_tiles: [],
-    melds: [],
-    situation: {
-      round_wind: "",
-      seat_wind: "",
-      upper_indicators: [],
-      lower_indicators: [],
-      is_tsumo: false,
-      is_ready: false,
-      is_first_around_ready: false,
-      is_first_around_win: false,
-      is_ready_around_win: false,
-      is_last_tile_win: false,
-      is_quad_tile_win: false,
-      is_quad_turn_win: false
-    },
-    score:{
-        point: 0,
-        doubles: 0,
-        score: 0,
-        adjusted_score: 0,
-        limit_type: "",
-        is_dealer: false,
-        is_hand_limit: false,
-        hand_types: [],
-        point_types: []
-    }
+    hand: EMPTY_HAND,
+    score: EMPTY_SCORE
 }
 
 export type QuestionResponse = {
     hand_id: number,
-    hand_tiles: string[],
-    melds: Meld[],
-    situation: Situation,
+    hand: Hand,
     score: Score
 }
 
+export type Hand = {
+    hand_tiles: Tile[],
+    winning_tile: Tile,
+    open_melds: Meld[],
+    situation: Situation,
+}
+
 export type Meld = {
-    meld_tiles: string[],
-    call_from: string
+    meld_tiles: Tile[],
+    call_from: Side
 }
 
 export type Situation = {
-    round_wind: string,
-    seat_wind: string,
+    round_wind: Wind,
+    seat_wind: Wind,
     upper_indicators: string[],
     lower_indicators: string[],
-    is_tsumo: boolean,
-    is_ready: boolean,
-    is_first_around_ready: boolean,
-    is_first_around_win: boolean,
-    is_ready_around_win: boolean,
-    is_last_tile_win: boolean,
-    is_quad_tile_win: boolean,
-    is_quad_turn_win: boolean
+    tsumo: boolean,
+    ready: boolean,
+    first_around_ready: boolean,
+    first_around_win: boolean,
+    ready_around_win: boolean,
+    last_tile_win: boolean,
+    quad_tile_win: boolean,
+    quad_turn_win: boolean
 }
 
 export type Score = {
@@ -63,8 +77,8 @@ export type Score = {
     score: number,
     adjusted_score: number,
     limit_type: string,
-    is_dealer: boolean,
-    is_hand_limit: boolean,
+    dealer: boolean,
+    hand_limit: boolean,
     hand_types: HandType[],
     point_types: PointType[]
 }
@@ -76,5 +90,20 @@ export type HandType = {
 
 export type PointType = {
     name: string,
-    point: string
+    point: number
+}
+
+export type Side = "SELF" | "RIGHT" | "ACROSS" | "LEFT";
+export type Wind = "EAST" | "SOUTH" | "WEST" | "NORTH";
+
+const tiles = [
+    "M1", "M2", "M3", "M4", "M5", "M5R", "M6", "M7", "M8", "M9",
+    "P1", "P2", "P3", "P4", "P5", "P5R", "P6", "P7", "P8", "P9",
+    "S1", "S2", "S3", "S4", "S5", "S5R", "S6", "S7", "S8", "S9",
+    "WE", "WS", "WW", "WN", "DW", "DG", "DR"];
+
+export type Tile = typeof tiles[number];
+
+export const isTile = (item: string): item is Tile => {
+    return tiles.includes(item);
 }
