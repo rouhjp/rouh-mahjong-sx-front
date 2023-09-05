@@ -43,7 +43,7 @@ export default function Home() {
       + "&doubles_upper="+doublesUpper;
     axios.get(end_point+parameters).then((response: AxiosResponse<QuestionResponse>) => {
       const data :QuestionResponse = response.data;
-      console.log("debug code: "+data.hand_id);
+      console.log("debug code: "+data.handId);
       console.log(data.hand);
       setHand(data.hand);
       setCorrectScore(data.score);
@@ -137,37 +137,37 @@ export default function Home() {
               <>
                 <div>
                   <ul className={styles.situations}>
-                    <li>場風:{get_wind_text(hand.situation.round_wind)}</li>
-                    <li>自風:{get_wind_text(hand.situation.seat_wind)}</li>
-                    <li>{hand.situation.seat_wind=="EAST"?"親":"子"}</li>
-                    <li>{hand.situation.tsumo?"ツモ":"ロン"}</li>
+                    <li>場風:{get_wind_text(hand.situation.roundWind)}</li>
+                    <li>自風:{get_wind_text(hand.situation.seatWind)}</li>
+                    <li>{hand.situation.seatWind=="EAST"?"親":"子"}</li>
+                    <li>{hand.situation.isTsumo?"ツモ":"ロン"}</li>
                   </ul>
                   <ul className={styles.options}>
-                    {hand.situation.first_around_ready &&
+                    {hand.situation.isFirstAroundReady &&
                       <li>ダブル立直</li>
                     }
-                    {!hand.situation.first_around_ready && hand.situation.ready &&
+                    {!hand.situation.isFirstAroundReady && hand.situation.isReady &&
                       <li>立直</li>
                     }
-                    {hand.situation.first_around_win && hand.situation.tsumo && hand.situation.seat_wind=="EAST" &&
+                    {hand.situation.isFirstAroundWin && hand.situation.isTsumo && hand.situation.seatWind=="EAST" &&
                       <li>天和</li>
                     }
-                    {hand.situation.first_around_win && hand.situation.tsumo && hand.situation.seat_wind!="EAST" &&
+                    {hand.situation.isFirstAroundWin && hand.situation.isTsumo && hand.situation.seatWind!="EAST" &&
                       <li>地和</li>
                     }
-                    {hand.situation.ready_around_win &&
+                    {hand.situation.isReadyAroundWin &&
                       <li>一発</li>
                     }
-                    {hand.situation.quad_tile_win &&
+                    {hand.situation.isQuadTileWin &&
                       <li>槍槓</li>
                     }
-                    {hand.situation.quad_turn_win &&
+                    {hand.situation.isQuadTurnWin &&
                       <li>嶺上開花</li>
                     }
-                    {hand.situation.last_tile_win && hand.situation.tsumo &&
+                    {hand.situation.isLastTileWin && hand.situation.isTsumo &&
                       <li>海底摸月</li>
                     }
-                    {hand.situation.last_tile_win && !hand.situation.tsumo &&
+                    {hand.situation.isLastTileWin && !hand.situation.isTsumo &&
                       <li>河底撈魚</li>
                     }
                   </ul>
@@ -175,26 +175,26 @@ export default function Home() {
                 <div>
                   <ul className={styles.hand_tiles}>
                     {
-                      Object.values([...hand.hand_tiles, hand.winning_tile]).map((hand_tile, index) => {
+                      Object.values([...hand.handTiles, hand.winningTile]).map((hand_tile, index) => {
                         return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand_tile+".jpg"}/></li>;
                       })
                     }
                   </ul>
-                  {hand.open_melds.length>0 && 
+                  {hand.openMelds.length>0 && 
                     <>
                       <p className={`${styles.guide} ${styles.sp_only}`}>副露</p>
-                      {Object.values(hand.open_melds).map((meld, meld_index) => 
+                      {Object.values(hand.openMelds).map((meld, meld_index) => 
                         <ul key={meld_index} className={styles.meld_tiles}>
-                          {meld.call_from=="SELF" &&
+                          {meld.callFrom=="SELF" &&
                             <>
                               <li key={0}><img className={styles.tile_image} src={"tiles/back.jpg"}/></li>
-                              <li key={1}><img className={styles.tile_image} src={"tiles/"+meld.meld_tiles[1]+".jpg"}/></li>
-                              <li key={2}><img className={styles.tile_image} src={"tiles/"+meld.meld_tiles[2]+".jpg"}/></li>
+                              <li key={1}><img className={styles.tile_image} src={"tiles/"+meld.meldTiles[1]+".jpg"}/></li>
+                              <li key={2}><img className={styles.tile_image} src={"tiles/"+meld.meldTiles[2]+".jpg"}/></li>
                               <li key={3}><img className={styles.tile_image} src={"tiles/back.jpg"}/></li>
                             </>
                           }
-                          {meld.call_from!="SELF" &&
-                            Object.values(meld.meld_tiles).map((meld_tile, tile_index) => {
+                          {meld.callFrom!="SELF" &&
+                            Object.values(meld.meldTiles).map((meld_tile, tile_index) => {
                               return <li key={meld_index + '-' +tile_index}><img className={styles.tile_image} src={"tiles/"+meld_tile+".jpg"}/></li>;
                             })
                           }
@@ -207,18 +207,18 @@ export default function Home() {
                 <div>
                   <ul className={styles.upper_indicators}>
                     {Array.from(Array(5).keys()).map((index)=>{
-                      if(index < hand.situation.upper_indicators.length){
-                        return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand.situation.upper_indicators[index]+".jpg"} /></li>
+                      if(index < hand.situation.upperIndicators.length){
+                        return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand.situation.upperIndicators[index]+".jpg"} /></li>
                       }else{
                         return <li key={index}><img className={styles.tile_image} src={"tiles/back.jpg"} /></li>
                       }
                     })}
                   </ul>
-                  {hand.situation.lower_indicators.length > 0 &&
+                  {hand.situation.lowerIndicators.length > 0 &&
                     <ul className={styles.lower_indicators}>
                       {Array.from(Array(5).keys()).map((index)=>{
-                        if(index < hand.situation.lower_indicators.length){
-                          return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand.situation.lower_indicators[index]+".jpg"} /></li>
+                        if(index < hand.situation.lowerIndicators.length){
+                          return <li key={index}><img className={styles.tile_image} src={"tiles/"+hand.situation.lowerIndicators[index]+".jpg"} /></li>
                         }else{
                           return <li key={index}><img className={styles.tile_image} src={"tiles/back.jpg"} /></li>
                         }
@@ -271,10 +271,10 @@ export default function Home() {
                   <span>点</span>
                 </div>
                 <div>
-                  {hand.situation.tsumo && hand.situation.seat_wind!="EAST" &&
+                  {hand.situation.isTsumo && hand.situation.seatWind!="EAST" &&
                     <span>{'('}{Math.ceil((answer.score || 0)/4/100)*100}点/{Math.ceil((answer.score || 0)/2/100)*100}点{')'}</span>
                   }
-                  {hand.situation.tsumo && hand.situation.seat_wind=="EAST" &&
+                  {hand.situation.isTsumo && hand.situation.seatWind=="EAST" &&
                     <span>{'('}{Math.ceil((answer.score || 0)/3/100)*100}点オール{')'}</span>
                   }
                 </div>
@@ -285,7 +285,7 @@ export default function Home() {
           }
           {initialized && answered &&
             <div className={styles.container}>
-              {(answer.score===correctScore.score || answer.score===correctScore.adjusted_score)?(
+              {(answer.score===correctScore.score || answer.score===correctScore.adjustedScore)?(
                 <h2 className={styles.answer_result}>正解！</h2>
               ):(
                 <h2 className={styles.answer_result}>不正解...</h2>
@@ -297,29 +297,29 @@ export default function Home() {
                 {correctScore.doubles>0 &&
                   <span>{correctScore.doubles}飜</span>
                 }
-                {correctScore.limit_type &&
-                  <span>{correctScore.limit_type}</span>
+                {correctScore.limitType &&
+                  <span>{correctScore.limitType}</span>
                 }
                 <span>{correctScore.score}点</span>
-                {hand.situation.tsumo && hand.situation.seat_wind!="EAST" &&
+                {hand.situation.isTsumo && hand.situation.seatWind!="EAST" &&
                   <span>{'('}{Math.ceil(correctScore.score/4/100)*100}点/{Math.ceil(correctScore.score/2/100)*100}点{')'}</span>
                 }
-                {hand.situation.tsumo && hand.situation.seat_wind=="EAST" &&
+                {hand.situation.isTsumo && hand.situation.seatWind=="EAST" &&
                   <span>{'('}{Math.ceil(correctScore.score/3/100)*100}点オール{')'}</span>
                 }
               </div>
               <div className={styles.type_table}>
                 <ul className={styles.hand_types}>
-                  {Object.values(correctScore.hand_types).map((hand_type, index)=>
+                  {Object.values(correctScore.handTypes).map((hand_type, index)=>
                     <li key={index}>
                       <div className={styles.hand_type_name}>{hand_type.name}</div>
                       <div className={styles.hand_type_grade}>{get_grade_text(hand_type.grade)}</div>
                     </li>
                   )}
                 </ul>
-                {correctScore.point_types.length>0 &&
+                {correctScore.pointTypes.length>0 &&
                   <ul className={styles.point_types}>
-                    {Object.values(correctScore.point_types).map((point_type, index)=>
+                    {Object.values(correctScore.pointTypes).map((point_type, index)=>
                       <li key={index}>
                         <div className={styles.point_type_name}>{point_type.name}</div>
                         <div className={styles.point_type_point}>{point_type.point}</div>
@@ -335,7 +335,7 @@ export default function Home() {
                   const point_headers = <>
                     <tr>
                       <th>
-                        {hand.situation.seat_wind=="EAST"?"親":"子"}
+                        {hand.situation.seatWind=="EAST"?"親":"子"}
                       </th>
                       {Object.values(point_steps).map((point_step, index)=>
                         <th key={index} className={point_step==correctScore.point?styles.selected:""}>{point_step}符</th>
@@ -343,7 +343,7 @@ export default function Home() {
                     </tr>
                   </>
                   const selected_step_index = (()=>{
-                    var effective_doubles = correctScore.hand_limit?13:correctScore.doubles;
+                    var effective_doubles = correctScore.isHandLimit?13:correctScore.doubles;
                     var index = Object.values(doubles_steps).findIndex(step=>step>effective_doubles);
                     if(index==-1) return doubles_steps.length - 1;
                     return index -1;
@@ -358,7 +358,7 @@ export default function Home() {
                       }
                       return step+"-"+(doubles_steps[index + 1] - 1)+"飜";
                     })
-                  const score_map = Object.values(doubles_steps).map(doubles=>Object.values(point_steps).map(point=>get_score(point, doubles, correctScore.dealer)));
+                  const score_map = Object.values(doubles_steps).map(doubles=>Object.values(point_steps).map(point=>get_score(point, doubles, correctScore.isDealer)));
                   const table_content = Object.values(doubles_steps).map((doubles, row_index)=>
                     <tr key={row_index}>
                       <th className={row_index==selected_step_index?styles.selected:""}>{doubles_step_texts[row_index]}</th>

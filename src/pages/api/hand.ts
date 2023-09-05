@@ -166,8 +166,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
                 const openMeldsExpression:string = data.open_melds;
                 const openMelds:Meld[] = !openMeldsExpression?[]:Object.values(openMeldsExpression.split(",")).map(openMeldExpression => {
                     return {
-                        meld_tiles: openMeldExpression.split(":")[0].split("/").map(to_tile),
-                        call_from: to_side(openMeldExpression.split(":")[1])
+                        meldTiles: openMeldExpression.split(":")[0].split("/").map(to_tile),
+                        callFrom: to_side(openMeldExpression.split(":")[1])
                     }
                 });
                 const handTypesExpression:string = data.hand_types;
@@ -176,17 +176,17 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
                     point: data.point,
                     doubles: data.doubles,
                     score: data.score,
-                    adjusted_score: data.adjusted_score,
-                    limit_type: data.limit_type,
-                    dealer: data.is_dealer,
-                    hand_limit: data.is_hand_limit,
-                    hand_types: Object.values(handTypesExpression.split(",")).map(handTypeExpression => {
+                    adjustedScore: data.adjusted_score,
+                    limitType: data.limit_type,
+                    isDealer: data.is_dealer,
+                    isHandLimit: data.is_hand_limit,
+                    handTypes: Object.values(handTypesExpression.split(",")).map(handTypeExpression => {
                         return {
                             name: handTypeExpression.split(":")[0],
                             grade: handTypeExpression.split(":")[1]
                         }
                     }),
-                    point_types: !pointTypesExpression?[]:Object.values(pointTypesExpression.split(",")).map(pointTypesExpression => {
+                    pointTypes: !pointTypesExpression?[]:Object.values(pointTypesExpression.split(",")).map(pointTypesExpression => {
                         return {
                             name: pointTypesExpression.split(":")[0],
                             point: parseInt(pointTypesExpression.split(":")[1]) || 0
@@ -197,24 +197,24 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
                 const all_tiles = data.all_tiles.split("/");
                 
                 res.status(200).json({ 
-                    hand_id: data.hand_id,
+                    handId: data.hand_id,
                     hand:{
-                        hand_tiles: all_tiles.slice(0, all_tiles.length-1).map(to_tile),
-                        winning_tile: to_tile(all_tiles.pop()),
-                        open_melds: openMelds,
+                        handTiles: all_tiles.slice(0, all_tiles.length-1).map(to_tile),
+                        winningTile: to_tile(all_tiles.pop()),
+                        openMelds: openMelds,
                         situation: {
-                            round_wind: to_wind(data.round_wind),
-                            seat_wind: to_wind(data.seat_wind),
-                            upper_indicators: data.upper_indicators?data.upper_indicators.split("/"):[],
-                            lower_indicators: data.lower_indicators?data.lower_indicators.split("/"):[],
-                            tsumo: data.is_tsumo,
-                            ready: data.is_ready,
-                            first_around_ready: data.is_first_around_ready,
-                            first_around_win: data.is_first_around_win,
-                            ready_around_win: data.is_ready_around_win,
-                            last_tile_win: data.is_last_tile_win,
-                            quad_tile_win: data.is_quad_tile_win,
-                            quad_turn_win: data.is_quad_turn_win
+                            roundWind: to_wind(data.round_wind),
+                            seatWind: to_wind(data.seat_wind),
+                            upperIndicators: data.upper_indicators?data.upper_indicators.split("/"):[],
+                            lowerIndicators: data.lower_indicators?data.lower_indicators.split("/"):[],
+                            isTsumo: data.is_tsumo,
+                            isReady: data.is_ready,
+                            isFirstAroundReady: data.is_first_around_ready,
+                            isFirstAroundWin: data.is_first_around_win,
+                            isReadyAroundWin: data.is_ready_around_win,
+                            isLastTileWin: data.is_last_tile_win,
+                            isQuadTileWin: data.is_quad_tile_win,
+                            isQuadTurnWin: data.is_quad_turn_win
                         }
                     },
                     score: score

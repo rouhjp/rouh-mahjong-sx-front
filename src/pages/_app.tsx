@@ -1,5 +1,5 @@
-//import '@/styles/globals.css'
 import '@/styles/reset.min.css'
+import '@/styles/globals.css'
 import type { AppProps } from 'next/app'
 
 
