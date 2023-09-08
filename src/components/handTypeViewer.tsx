@@ -17,7 +17,7 @@ interface Props {
   pointTypes: PointType[]
 }
 
-export const HandTypeViewer = memo(function ({
+export const HandTypeViewer = memo(function HandTypeViewerContent({
   handTypes,
   pointTypes,
 }: Props) {

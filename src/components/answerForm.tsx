@@ -38,7 +38,7 @@ interface Props {
   setIsAnswered: Dispatch<SetStateAction<boolean>>,
 }
 
-export const AnswerForm = memo(function ({
+export const AnswerForm = memo(function AnswerFormContent({
   isTsumo,
   isDealer,
   answer,

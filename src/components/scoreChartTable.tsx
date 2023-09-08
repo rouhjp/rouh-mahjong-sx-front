@@ -65,7 +65,7 @@ interface Props {
 }
 
 //点数早見表コンポーネント
-export const ScoreChartTable = memo(function ({
+export const ScoreChartTable = memo(function ScoreChartTableContent({
   isDealer = false, //親かどうか
   targetPoint = -1, //ハイライトする符
   targetDoubles = -1, //ハイライトする飜(役満の場合は13を指定する)

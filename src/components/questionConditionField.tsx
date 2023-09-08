@@ -6,7 +6,7 @@ interface Props {
   onChangeCondition: Dispatch<SetStateAction<QuestionCondition>>,
 }
 
-export const QuestionConditionField = memo(function ({
+export const QuestionConditionField = memo(function QuestionConditionFieldContent({
   condition,
   onChangeCondition,
 }: Props) {

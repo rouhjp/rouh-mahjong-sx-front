@@ -34,7 +34,7 @@ interface Props {
   isQuadTurnWin?: boolean,
 }
 
-export const HandViewer = memo(function ({
+export const HandViewer = memo(function HandViewerContent({
   handTiles,
   openMelds,
   winningTile,
