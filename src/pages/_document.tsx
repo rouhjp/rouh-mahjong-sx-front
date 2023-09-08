@@ -7,7 +7,7 @@ export default function Document() {
         <meta name="description" content="麻雀の点数計算ができるようになるために練習問題を解くアプリです" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <body>
+      <body className="bg-repeat" style={{backgroundImage: `url('/background.png')`}}>
         <Main />
         <NextScript />
       </body>

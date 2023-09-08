@@ -1,4 +1,4 @@
-import { Dispatch, MouseEventHandler, SetStateAction, memo } from "react";
+import { Dispatch, SetStateAction, memo } from "react";
 
 const SELECTABLE_POINTS = [20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110];
 const SELECTABLE_DOUBLES = Array.from(Array(15).keys()).map(index => index + 1);

@@ -28,10 +28,10 @@ export const QuestionConditionField = memo(function QuestionConditionFieldConten
         </div>
       </div>
       {showField &&
-        <div className="flex-wrap pb-2 mb-2 space-y-1 border-b border-dotted border-black">
+        <div className="flex-wrap pb-2 mb-2 space-y-1 border-b border-dashed border-[#a9a9a9]">
           <div className="inline-block">
             {/* 条件セレクトボックス (全て|親|子) */}
-            <select className="py-1.5 px-2 mr-2"
+            <select className="py-1.5 px-2 mr-2 border"
               value={condition.dealerCondition}
               onChange={e => {
                 const dealerCondition: string = e.target.value;
@@ -44,7 +44,7 @@ export const QuestionConditionField = memo(function QuestionConditionFieldConten
               )}
             </select>
             {/* 条件セレクトボックス (全て|門前|鳴き) */}
-            <select className="py-1.5 px-2 mr-2"
+            <select className="py-1.5 px-2 mr-2 border"
               value={condition.concealedCondition}
               onChange={e => {
                 const concealedCondition: string = e.target.value;
@@ -57,7 +57,7 @@ export const QuestionConditionField = memo(function QuestionConditionFieldConten
               )}
             </select>
             {/* 条件セレクトボックス (全て|ツモ|ロン) */}
-            <select className="py-1.5 px-2 mr-2"
+            <select className="py-1.5 px-2 mr-2 border"
               value={condition.winningCondition}
               onChange={e => {
                 const winningCondition: string = e.target.value;
@@ -72,7 +72,7 @@ export const QuestionConditionField = memo(function QuestionConditionFieldConten
           </div>
           <div className="inline-block">
             {/* 条件セレクトボックス (|1...13)飜以上 */}
-            <select className="py-1.5 mr-2"
+            <select className="py-1.5 mr-2 border"
               value={condition.doublesLowerLimit}
               onChange={e => {
                 const doublesLowerLimit = parseInt(e.target.value) || 0;
@@ -87,7 +87,7 @@ export const QuestionConditionField = memo(function QuestionConditionFieldConten
             </select>
             <span className="mr-2">飜以上</span>
             {/* 条件セレクトボックス (|1...13)飜以下 */}
-            <select className="py-1.5 mr-2"
+            <select className="py-1.5 mr-2 border"
               value={condition.doublesUpperLimit}
               onChange={e => {
                 const doublesUpperLimit = parseInt(e.target.value) || 0;

@@ -53,9 +53,9 @@ export default function Home() {
         <title>麻雀点数計算練習 </title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <main className="space-y-2 my-2">
+      <main className="space-y-2 mt-2">
         {/* 出題エリア */}
-        <div className="bg-[#f0f8ff] mx-auto max-w-[800px] p-2 md:p-4">
+        <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
           <div className="flex items-center gap-2">
             <h1 className="text-2xl md:text-3xl font-bold mb-1">麻雀<span className="text-[#008000]">点数計算</span>練習問題</h1>
             <input type="button"
@@ -95,7 +95,7 @@ export default function Home() {
         </div>
         {/* 回答エリア */}
         {data &&
-          <div className="bg-[#f0f8ff] mx-auto max-w-[800px] p-2 md:p-4">
+          <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <AnswerForm
               isTsumo={data.hand.situation.isTsumo}
               isDealer={data.hand.situation.seatWind === "EAST"}
@@ -109,7 +109,7 @@ export default function Home() {
         }
         {/* 結果エリア */}
         {(data && isAnswered) &&
-          <div className="bg-[#f0f8ff] mx-auto max-w-[800px] p-2 md:p-4">
+          <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <div className="mb-5">
               <h2 className="text-[#8b0000] text-2xl font-bold">
                 {isCorrect ? "正解！" : "不正解..."}
@@ -132,7 +132,7 @@ export default function Home() {
           </div>
         }
         {/* フッターエリア */}
-        <div className="bg-[#f0f8ff] mx-auto max-w-[800px] p-2">
+        <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
           <div className="text-xs text-[#808080]">
             <p>開発者: 運輸犬 <a href="https://twitter.com/kawaiiseeker" target="_blank" rel="noopener noreferrer">@kawaiiseeker</a></p>
             {/*<p>お金に余裕がある方はアマギフ買ってくれるとサーバ代の足しになります: <a href="https://www.amazon.jp/hz/wishlist/ls/1Z5ETCS6OKYOE?ref_=wl_share">ほしいものリスト</a></p>*/}
