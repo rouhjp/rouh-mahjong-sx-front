@@ -19,14 +19,14 @@ export type Answer = {
   point: number,
   doubles: number,
   limitType: string,
-  score: number,
+  score?: number,
 }
 
 export const DEFAULT_ANSWER: Answer = {
   point: 0,
   doubles: 0,
   limitType: "",
-  score: 0,
+  score: undefined,
 }
 
 interface Props {
@@ -81,7 +81,7 @@ export const AnswerForm = memo(function AnswerFormContent({
         </select>
       </div>
       <div className="inline-block mr-2">
-        <input value={answer.score}
+        <input value={answer.score || ""}
           onChange={e => setAnswer(prev => ({ ...prev, score: parseInt(e.target.value) || 0 }))}
           onKeyDown={e => {
             if (e.key === "Enter") {
@@ -92,10 +92,10 @@ export const AnswerForm = memo(function AnswerFormContent({
         </input>
         <span>点</span>
         {isTsumo && isDealer &&
-          <span className="ml-1">{`(${getDealerPaymentExpression(answer.score)})`}</span>
+          <span className="ml-1">{`(${getDealerPaymentExpression(answer.score || 0)})`}</span>
         }
         {isTsumo && !isDealer &&
-          <span className="ml-1">{`(${getNonDealerPaymentExpression(answer.score)})`}</span>
+          <span className="ml-1">{`(${getNonDealerPaymentExpression(answer.score || 0)})`}</span>
         }
       </div>
       <div className="inline-block">

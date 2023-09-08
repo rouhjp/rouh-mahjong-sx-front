@@ -40,8 +40,9 @@ export default function Home() {
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
   const reloadQuestion = () => {
+    setAnswer(DEFAULT_ANSWER);
     setIsAnswered(false);
-    setUrl(`${API_URL}?${parameters}`)
+    setUrl(`${API_URL}?${parameters}`);
     mutate(null, false); // clear data
     mutate(); // execute api
   }
