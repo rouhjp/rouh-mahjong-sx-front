@@ -1,24 +1,31 @@
+
+export type DealerCondition = keyof typeof DEALER_CONDITION
+export const isDealerCondition = (value: any): value is DealerCondition => Object.keys(DEALER_CONDITION).includes(value);
 export const DEALER_CONDITION = {
   all: "全て",
   dealer: "親",
   others: "子",
 }
 
-export type DealerCondition = keyof typeof DEALER_CONDITION
-
-export const isDealerCondition = (value: any): value is DealerCondition => Object.keys(DEALER_CONDITION).includes(value);
-
+export type ConcealedCondition = keyof typeof CONCEALED_CONDITION
+export const isConcealedCondition = (value: any): value is ConcealedCondition => Object.keys(CONCEALED_CONDITION).includes(value);
 export const CONCEALED_CONDITION = {
   all: "全て",
   concealed: "門前",
   called: "鳴き",
 }
 
-export type ConcealedCondition = keyof typeof CONCEALED_CONDITION
 
-export const isConcealedCondition = (value: any): value is ConcealedCondition => Object.keys(CONCEALED_CONDITION).includes(value);
+export type WinningCondition = keyof typeof WINNING_CONDITION
+export const isWinningCondition = (value: any): value is WinningCondition => Object.keys(WINNING_CONDITION).includes(value);
+export const WINNING_CONDITION = {
+  all: "全て",
+  tsumo: "ツモ",
+  ron: "ロン",
+}
 
 export interface QuestionCondition {
+  winningCondition: WinningCondition,
   dealerCondition: DealerCondition,
   concealedCondition: ConcealedCondition,
   doublesLowerLimit: number,
@@ -26,6 +33,7 @@ export interface QuestionCondition {
 }
 
 export const DEFAULT_CONDITION: QuestionCondition = {
+  winningCondition: "all",
   dealerCondition: "all",
   concealedCondition: "all",
   doublesLowerLimit: 0,

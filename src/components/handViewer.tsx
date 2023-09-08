@@ -62,37 +62,37 @@ export const HandViewer = memo(function ({
   const isLastTurnRon = isLastTileWin && !isTsumo;
   return (
     <div>
-      <ul className="flex gap-1 mb-2">
-        <li className="bg-white border border-black px-2">場風:{getWindText(roundWind)}</li>
-        <li className="bg-white border border-black px-2">自風:{getWindText(seatWind)}</li>
-        <li className="bg-white border border-black px-2">{isDealer ? "親" : "子"}</li>
-        <li className="bg-white border border-black px-2">{isTsumo ? "ツモ" : "ロン"}</li>
+      <ul className="flex-wrap space-x-1 space-y-1 mb-2">
+        <li className="inline-block bg-white border border-[#696969] px-2">場風:{getWindText(roundWind)}</li>
+        <li className="inline-block bg-white border border-[#696969] px-2">自風:{getWindText(seatWind)}</li>
+        <li className="inline-block bg-white border border-[#696969] px-2">{isDealer ? "親" : "子"}</li>
+        <li className="inline-block bg-white border border-[#696969] px-2">{isTsumo ? "ツモ" : "ロン"}</li>
         {isDoubleReady &&
-          <li className="bg-white border border-black rounded-full px-2">ダブル立直</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">ダブル立直</li>
         }
         {isSingleReady &&
-          <li className="bg-white border border-black rounded-full px-2">立直</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">立直</li>
         }
         {isBlessingOfHeaven &&
-          <li className="bg-white border border-black rounded-full px-2">天和</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">天和</li>
         }
         {isBlessingOfEarth &&
-          <li className="bg-white border border-black rounded-full px-2">地和</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">地和</li>
         }
         {isReadyAroundWin &&
-          <li className="bg-white border border-black rounded-full px-2">一発</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">一発</li>
         }
         {isQuadTileWin &&
-          <li className="bg-white border border-black rounded-full px-2">槍槓</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">槍槓</li>
         }
         {isQuadTurnWin &&
-          <li className="bg-white border border-black rounded-full px-2">嶺上開花</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">嶺上開花</li>
         }
         {isLastTurnTsumo &&
-          <li className="bg-white border border-black rounded-full px-2">海底摸月</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">海底摸月</li>
         }
         {isLastTurnRon &&
-          <li className="bg-white border border-black rounded-full px-2">河底撈魚</li>
+          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">河底撈魚</li>
         }
       </ul>
       <div className="flex-wrap md:flex gap-4">
