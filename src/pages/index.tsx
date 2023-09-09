@@ -3,9 +3,9 @@ import { HandTypeViewer } from "@/components/handTypeViewer";
 import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
-import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score } from "@/type";
+import { DEFAULT_CONDITION, QuestionCondition, QuestionResponse, Score } from "@/type";
 import Head from "next/head";
-import { SVGProps, useState } from "react";
+import { SVGProps, useRef, useState } from "react";
 import useSWR from "swr";
 
 const questionFetcher = async (key: string) => await fetch(key).then(response => response.json());
@@ -34,7 +34,8 @@ const API_URL = "api/hand"
 
 export default function Home() {
   const [url, setUrl] = useState<string>(API_URL);
-  const { data, error, mutate } = useSWR<QuestionResponse>(url, questionFetcher, { revalidateOnFocus: false });
+  const random = useRef(Date.now())
+  const { data, error, mutate } = useSWR<QuestionResponse>([url, random], questionFetcher, { revalidateOnFocus: false });
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
   const [answer, setAnswer] = useState<Answer>(DEFAULT_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
