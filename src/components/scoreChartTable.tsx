@@ -110,13 +110,13 @@ export const ScoreChartTable = memo(function ScoreChartTableContent({
               const scoreBottom = score_map[rowIndex + 1]?.[colIndex];
               const limitType = getLimitType(point, doubles);
               const isTarget = doubles >= 2 || point >= 30;
-              const showLimit = limitType && rowIndex >= 4 && colIndex === 5;
-              const showScore = !limitType || (rowIndex >= 4 && colIndex === 6);
+              const showLimit = limitType && rowIndex >= 4 && colIndex === 4;
+              const showScore = !limitType || (rowIndex >= 4 && colIndex === 5);
               const text = showLimit ? limitType : showScore ? (isTarget ? score : "-") : ""
               return (
                 <td key={colIndex}
                   className={[
-                    "border-black p-1 bg-white",
+                    "border-black p-1 bg-white w-14",
                     score !== scoreTop ? "border-t" : "",
                     score !== scoreLeft ? "border-l" : "",
                     score !== scoreRight ? "border-r" : "",
