@@ -3,12 +3,10 @@ import { HandTypeViewer } from "@/components/handTypeViewer";
 import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
-import { DEFAULT_CONDITION, QuestionCondition, QuestionResponse, Score } from "@/type";
+import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score, isQuestionResponse } from "@/type";
+import axios from "axios";
 import Head from "next/head";
-import { SVGProps, useRef, useState } from "react";
-import useSWR from "swr";
-
-const questionFetcher = async (key: string) => await fetch(key).then(response => response.json());
+import { SVGProps, useEffect, useState } from "react";
 
 const getNonDealerPaymentExpression = (score: number): string => {
   const dealerPayment = Math.ceil((score || 0) / 2 / 100) * 100;
@@ -30,25 +28,37 @@ const getExpression = (score: Score, isTsumo: boolean, isDealer: boolean): strin
     + ((isTsumo && !isDealer) ? `(${getNonDealerPaymentExpression(score.score)})` : "")
 }
 
-const API_URL = "api/hand"
-
 export default function Home() {
-  const [url, setUrl] = useState<string>(API_URL);
-  const random = useRef(Date.now())
-  const { data, error, mutate } = useSWR<QuestionResponse>([url, random], questionFetcher, { revalidateOnFocus: false });
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
   const [answer, setAnswer] = useState<Answer>(DEFAULT_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
-  const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
-  const reloadQuestion = () => {
-    setAnswer(DEFAULT_ANSWER);
+  const [question, setQuestion] = useState<QuestionResponse>(EMPTY_QUESTION_RESPONSE);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [isError, setIsError] = useState<boolean>(false);
+  const isCorrect = question && (answer.score === question.score.score || answer.score === question.score.adjustedScore);
+  const expression = question ? getExpression(question.score, question.hand.situation.isTsumo, question.hand.situation.seatWind === "EAST") : "";
+  const loadQuestion = (() => {
+    setQuestion(EMPTY_QUESTION_RESPONSE);
+    setIsLoaded(false);
     setIsAnswered(false);
-    setUrl(`${API_URL}?${parameters}`);
-    mutate(null, false); // clear data
-    mutate(); // execute api
-  }
-  const isCorrect = data && (answer.score === data.score.score || answer.score === data.score.adjustedScore);
-  const expression = data ? getExpression(data.score, data.hand.situation.isTsumo, data.hand.situation.seatWind === "EAST") : "";
+    setIsError(false);
+    const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
+    const url = `api/hand?${parameters}`;
+    axios.get(url).then((response) => {
+      setIsLoaded(true);
+      if (response.data && isQuestionResponse(response.data)) {
+        setQuestion(response.data);
+      } else {
+        setIsError(true);
+      }
+    }).catch(error => {
+      console.log(error);
+      setIsError(true);
+    })
+  })
+  useEffect(() => {
+    loadQuestion();
+  }, [])
   return (
     <>
       <Head>
@@ -62,48 +72,48 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold mb-1">麻雀<span className="text-[#008000]">点数計算</span>練習問題</h1>
             <input type="button"
               value="次の問題"
-              onClick={reloadQuestion}
+              onClick={loadQuestion}
               className="hover:cursor-pointer bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"
             />
           </div>
           <QuestionConditionField condition={condition} onChangeCondition={setCondition} />
-          {(!data && !error) &&
+          {!isLoaded &&
             <p>読み込み中...</p>
           }
-          {error &&
+          {isError &&
             <p>サーバにデータの読み込みができなかった...</p>
           }
-          {(data && data.handId==-1) &&
+          {(!isError && isLoaded && question.handId == -1) &&
             <p>手牌データが見つからなかった...</p>
           }
-          {(data && data.handId!==-1) &&
+          {(!isError && isLoaded && question.handId !== -1) &&
             <div className="mb-1">
               <HandViewer
-                handTiles={data.hand.handTiles}
-                openMelds={data.hand.openMelds}
-                winningTile={data.hand.winningTile}
-                upperIndicators={data.hand.situation.upperIndicators}
-                lowerIndicators={data.hand.situation.lowerIndicators}
-                roundWind={data.hand.situation.roundWind}
-                seatWind={data.hand.situation.seatWind}
-                isTsumo={data.hand.situation.isTsumo}
-                isReady={data.hand.situation.isReady}
-                isFirstAroundReady={data.hand.situation.isFirstAroundReady}
-                isFirstAroundWin={data.hand.situation.isFirstAroundWin}
-                isReadyAroundWin={data.hand.situation.isReadyAroundWin}
-                isLastTileWin={data.hand.situation.isLastTileWin}
-                isQuadTileWin={data.hand.situation.isQuadTileWin}
-                isQuadTurnWin={data.hand.situation.isQuadTurnWin}
+                handTiles={question.hand.handTiles}
+                openMelds={question.hand.openMelds}
+                winningTile={question.hand.winningTile}
+                upperIndicators={question.hand.situation.upperIndicators}
+                lowerIndicators={question.hand.situation.lowerIndicators}
+                roundWind={question.hand.situation.roundWind}
+                seatWind={question.hand.situation.seatWind}
+                isTsumo={question.hand.situation.isTsumo}
+                isReady={question.hand.situation.isReady}
+                isFirstAroundReady={question.hand.situation.isFirstAroundReady}
+                isFirstAroundWin={question.hand.situation.isFirstAroundWin}
+                isReadyAroundWin={question.hand.situation.isReadyAroundWin}
+                isLastTileWin={question.hand.situation.isLastTileWin}
+                isQuadTileWin={question.hand.situation.isQuadTileWin}
+                isQuadTurnWin={question.hand.situation.isQuadTurnWin}
               />
             </div>
           }
         </div>
         {/* 回答エリア */}
-        {data &&
+        {question &&
           <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <AnswerForm
-              isTsumo={data.hand.situation.isTsumo}
-              isDealer={data.hand.situation.seatWind === "EAST"}
+              isTsumo={question.hand.situation.isTsumo}
+              isDealer={question.hand.situation.seatWind === "EAST"}
               answer={answer}
               setAnswer={setAnswer}
               isAnswered={isAnswered}
@@ -113,35 +123,34 @@ export default function Home() {
           </div>
         }
         {/* 結果エリア */}
-        {(data && isAnswered) &&
+        {(question && isAnswered) &&
           <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <div className="mb-5">
-                {isCorrect &&
-                  <div className="flex items-center gap-1">
-                    <AkarIconsCircleCheck color="#008b00"></AkarIconsCircleCheck>
-                    <h2 className="text-[#008b00] text-2xl font-bold">正解！</h2>
-
-                  </div>
-                }
-                {!isCorrect &&
-                  <div className="flex items-center gap-1">
-                    <AkarIconsCircleX color="#8b0000"></AkarIconsCircleX>
-                    <h2 className="text-[#8b0000] text-2xl font-bold">不正解...</h2>
-                  </div>
-                }
+              {isCorrect &&
+                <div className="flex items-center gap-1">
+                  <AkarIconsCircleCheck color="#008b00"></AkarIconsCircleCheck>
+                  <h2 className="text-[#008b00] text-2xl font-bold">正解！</h2>
+                </div>
+              }
+              {!isCorrect &&
+                <div className="flex items-center gap-1">
+                  <AkarIconsCircleX color="#8b0000"></AkarIconsCircleX>
+                  <h2 className="text-[#8b0000] text-2xl font-bold">不正解...</h2>
+                </div>
+              }
               <p className="text-2xl">{expression}</p>
             </div>
             <div className="mb-4">
               <HandTypeViewer
-                handTypes={data.score.handTypes}
-                pointTypes={data.score.pointTypes}
+                handTypes={question.score.handTypes}
+                pointTypes={question.score.pointTypes}
               />
             </div>
             <div className="overflow-x-scroll overflow-y-hidden mb-1">
               <ScoreChartTable
-                isDealer={data.score.isDealer}
-                targetPoint={data.score.point}
-                targetDoubles={data.score.doubles}
+                isDealer={question.score.isDealer}
+                targetPoint={question.score.point}
+                targetDoubles={question.score.doubles}
               />
             </div>
           </div>

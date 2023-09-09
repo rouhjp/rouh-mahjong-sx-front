@@ -164,7 +164,7 @@ export const isScore = (data: any): data is Score => {
     'isDealer' in data && typeof data.isDealer === "boolean" &&
     'isHandLimit' in data && typeof data.isHandLimit === "boolean" &&
     'handTypes' in data && Array.isArray(data.handTypes) && data.handTypes.every(isHandType) &&
-    'pointTypes' in data && Array.isArray(data.pointTypes) && data.handTypes.every(isPointType)
+    'pointTypes' in data && Array.isArray(data.pointTypes) && data.pointTypes.every(isPointType)
   )
 }
 
@@ -228,7 +228,7 @@ export const isSide = (value: string): value is Side => {
 }
 
 export const isWind = (value: string): value is Wind => {
-  return SIDE_VALUES.includes(value)
+  return WIND_VALUES.includes(value)
 }
 
 export const isTile = (value: string): value is Tile => {
