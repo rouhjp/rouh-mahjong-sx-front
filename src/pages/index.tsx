@@ -3,9 +3,9 @@ import { HandTypeViewer } from "@/components/handTypeViewer";
 import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
-import { DEFAULT_CONDITION, QuestionCondition, QuestionResponse, Score } from "@/type";
+import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score } from "@/type";
 import Head from "next/head";
-import { useState } from "react";
+import { SVGProps, useState } from "react";
 import useSWR from "swr";
 
 const questionFetcher = async (key: string) => await fetch(key).then(response => response.json());
@@ -72,7 +72,10 @@ export default function Home() {
           {error &&
             <p>サーバにデータの読み込みができなかった...</p>
           }
-          {data &&
+          {(data && data.handId==-1) &&
+            <p>手牌データが見つからなかった...</p>
+          }
+          {(data && data.handId!==-1) &&
             <div className="mb-1">
               <HandViewer
                 handTiles={data.hand.handTiles}
@@ -112,9 +115,19 @@ export default function Home() {
         {(data && isAnswered) &&
           <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <div className="mb-5">
-              <h2 className="text-[#8b0000] text-2xl font-bold">
-                {isCorrect ? "正解！" : "不正解..."}
-              </h2>
+                {isCorrect &&
+                  <div className="flex items-center gap-1">
+                    <AkarIconsCircleCheck color="#008b00"></AkarIconsCircleCheck>
+                    <h2 className="text-[#008b00] text-2xl font-bold">正解！</h2>
+
+                  </div>
+                }
+                {!isCorrect &&
+                  <div className="flex items-center gap-1">
+                    <AkarIconsCircleX color="#8b0000"></AkarIconsCircleX>
+                    <h2 className="text-[#8b0000] text-2xl font-bold">不正解...</h2>
+                  </div>
+                }
               <p className="text-2xl">{expression}</p>
             </div>
             <div className="mb-4">
@@ -141,5 +154,19 @@ export default function Home() {
         </div>
       </main>
     </>
+  )
+}
+
+//https://icones.js.org/collection/akar-icons
+export function AkarIconsCircleCheck(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}><g fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="m8 12.5l3 3l5-6"></path><circle cx="12" cy="12" r="10"></circle></g></svg>
+  )
+}
+
+
+export function AkarIconsCircleX(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}><g fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M15 15L9 9m6 0l-6 6"></path><circle cx="12" cy="12" r="10"></circle></g></svg>
   )
 }

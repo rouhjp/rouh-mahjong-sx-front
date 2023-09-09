@@ -12,10 +12,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
   const concealedConditionString = req.query.concealedCondition as string
   const concealedCondition: ConcealedCondition = isConcealedCondition(concealedConditionString) ? concealedConditionString : "all"
 
-  const doublesLower = parseInt(req.query.doublesLower as string) || 0
-  const doublesUpper = parseInt(req.query.doublesUpper as string) || 0
+  const doublesLowerLimit = parseInt(req.query.doublesLowerLimit as string) || 0
+  const doublesUpperLimit = parseInt(req.query.doublesUpperLimit as string) || 0
 
-  const { query, parameters } = createHandFetchQuery(winningCondition, dealerCondition, concealedCondition, doublesLower, doublesUpper)
+  const { query, parameters } = createHandFetchQuery(winningCondition, dealerCondition, concealedCondition, doublesLowerLimit, doublesUpperLimit)
 
   // console.log("DB_USER=" + process.env.DB_USER);
   // console.log("DB_PASS=" + process.env.DB_PASS);
@@ -64,8 +64,8 @@ const createHandFetchQuery = (
   winningCondition: WinningCondition,
   dealerCondition: DealerCondition,
   concealedCondition: ConcealedCondition,
-  doublesLower: number,
-  doublesUpper: number,
+  doublesLowerLimit: number,
+  doublesUpperLimit: number,
 ): QueryAndParameters => {
   const conditions: string[] = []
   const parameters: string[] = []
@@ -97,14 +97,14 @@ const createHandFetchQuery = (
       break;
   }
 
-  if (doublesLower) {
+  if (doublesLowerLimit) {
     conditions.push(`CASE WHEN hs.IS_HAND_LIMIT THEN 13 ELSE hs.DOUBLES END >= $${parameters.length + 1}`)
-    parameters.push(doublesLower.toString())
+    parameters.push(doublesLowerLimit.toString())
   }
 
-  if (doublesUpper) {
+  if (doublesUpperLimit) {
     conditions.push(`CASE WHEN hs.IS_HAND_LIMIT THEN 13 ELSE hs.DOUBLES END <= $${parameters.length + 1}`)
-    parameters.push(doublesLower.toString())
+    parameters.push(doublesUpperLimit.toString())
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""
@@ -202,16 +202,16 @@ const createResponse = (data: any): QuestionResponse => {
     }) : [];
   const handTypesString: string = data.hand_types;
   const pointTypesString: string = data.point_types;
-  const handTypes: HandType[] = Object.values(handTypesString.split(",")).map(handTypeString => {
+  const handTypes: HandType[] = handTypesString? Object.values(handTypesString.split(",")).map(handTypeString => {
     const name: string = handTypeString.split(":")[0];
     const grade: string = handTypeString.split(":")[1];
     return { name, grade }
-  });
-  const pointTypes: PointType[] = Object.values(pointTypesString.split(",")).map(pointTypeString => {
+  }): [];
+  const pointTypes: PointType[] = pointTypesString? Object.values(pointTypesString.split(",")).map(pointTypeString => {
     const name: string = pointTypeString.split(":")[0];
     const point: number = parseInt(pointTypeString.split(":")[1]) || 0;
     return { name, point }
-  });
+  }): [];
   const score: Score = {
     point: data.point,
     doubles: data.doubles,

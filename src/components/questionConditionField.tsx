@@ -1,4 +1,4 @@
-import { CONCEALED_CONDITION, DEALER_CONDITION, DEFAULT_CONDITION, QuestionCondition, WINNING_CONDITION, isConcealedCondition, isDealerCondition, isWinningCondition } from "@/type";
+import { CONCEALED_CONDITION, DEALER_CONDITION, QuestionCondition, WINNING_CONDITION, isConcealedCondition, isDealerCondition, isWinningCondition } from "@/type";
 import { Dispatch, SVGProps, SetStateAction, memo, useState } from "react";
 
 interface Props {
