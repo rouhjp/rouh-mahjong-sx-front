@@ -22,7 +22,7 @@ export type Answer = {
   score?: number,
 }
 
-export const DEFAULT_ANSWER: Answer = {
+export const EMPTY_ANSWER: Answer = {
   point: 0,
   doubles: 0,
   limitType: "",

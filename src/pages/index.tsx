@@ -1,4 +1,4 @@
-import { Answer, AnswerForm, DEFAULT_ANSWER } from "@/components/answerForm";
+import { Answer, AnswerForm, EMPTY_ANSWER } from "@/components/answerForm";
 import { HandTypeViewer } from "@/components/handTypeViewer";
 import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
@@ -30,7 +30,7 @@ const getExpression = (score: Score, isTsumo: boolean, isDealer: boolean): strin
 
 export default function Home() {
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
-  const [answer, setAnswer] = useState<Answer>(DEFAULT_ANSWER);
+  const [answer, setAnswer] = useState<Answer>(EMPTY_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [question, setQuestion] = useState<QuestionResponse>(EMPTY_QUESTION_RESPONSE);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
@@ -40,6 +40,7 @@ export default function Home() {
   const loadQuestion = (() => {
     setQuestion(EMPTY_QUESTION_RESPONSE);
     setIsLoaded(false);
+    setAnswer(EMPTY_ANSWER);
     setIsAnswered(false);
     setIsError(false);
     const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
