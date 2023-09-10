@@ -6,7 +6,8 @@ import { ScoreChartTable } from "@/components/scoreChartTable";
 import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score, isQuestionResponse } from "@/type";
 import axios, { AxiosError } from "axios";
 import Head from "next/head";
-import { SVGProps, useEffect, useState } from "react";
+import { SVGProps, useEffect, useRef, useState } from "react";
+import useSWR from "swr";
 
 const getNonDealerPaymentExpression = (score: number): string => {
   const dealerPayment = Math.ceil((score || 0) / 2 / 100) * 100;
@@ -28,51 +29,27 @@ const getExpression = (score: Score, isTsumo: boolean, isDealer: boolean): strin
     + ((isTsumo && !isDealer) ? `(${getNonDealerPaymentExpression(score.score)})` : "")
 }
 
-interface Props {
-  defaultHandId: string,
-}
+const API_URL = "api/hand";
+const questionFetcher = async (key: string) => await fetch(key).then(response => response.json());
 
 export default function Home() {
+  const [url, setUrl] = useState<string>(API_URL);
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
+  const { data, error, mutate } = useSWR<QuestionResponse>(url, questionFetcher, { revalidateOnFocus: false });
   const [answer, setAnswer] = useState<Answer>(EMPTY_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
-  const [question, setQuestion] = useState<QuestionResponse>(EMPTY_QUESTION_RESPONSE);
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [erorrMessage, setErrorMessage] = useState<string>("");
-  const isCorrect = question && (answer.score === question.score.score || answer.score === question.score.adjustedScore);
-  const expression = question ? getExpression(question.score, question.hand.situation.isTsumo, question.hand.situation.seatWind === "EAST") : "";
-  const loadQuestion = () => {
-    const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
-    const url = `api/hand?${parameters}`;
-    axios.get(url).then((response) => {
-      setIsLoaded(true);
-      if (response.data && isQuestionResponse(response.data)) {
-        setQuestion(response.data);
-      } else {
-        setErrorMessage("エラーが発生した...");
-      }
-    }).catch((error: AxiosError) => {
-      setIsLoaded(true);
-      if (error?.response?.status === 404) {
-        setErrorMessage("手牌データが見つからなかった...");
-      } else {
-        setErrorMessage("サーバにデータの読み込みができなかった...");
-      }
-    })
-  }
+  const isCorrect = data && (answer.score === data.score.score || answer.score === data.score.adjustedScore);
+  const expression = data ? getExpression(data.score, data.hand.situation.isTsumo, data.hand.situation.seatWind === "EAST") : "";
+  const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
   const reloadQuestion = () => {
     //initialize states
-    setQuestion(EMPTY_QUESTION_RESPONSE);
-    setIsLoaded(false);
     setAnswer(EMPTY_ANSWER);
     setIsAnswered(false);
-    setErrorMessage("");
-    // reload
-    loadQuestion();
+    const random = `random=${Date.now()}` //add random arguments for avoiding cache
+    setUrl(`${API_URL}?${parameters}&${random}`);
+    mutate(null, false); // clear data
+    mutate(); // execute api
   }
-  useEffect(() => {
-    loadQuestion();
-  }, [])
   return (
     <>
       <Head>
@@ -86,48 +63,48 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold mb-1">麻雀<span className="text-[#008000]">点数計算</span>練習問題</h1>
             <input type="button"
               value="次の問題"
-              disabled={!isLoaded}
+              disabled={!data && !error}
               onClick={reloadQuestion}
-              className={!isLoaded ?
+              className={(!data && !error) ?
                 "bg-transparent text-gray-400 font-semibold py-1 px-2 border border-gray-400 rounded" :
                 "hover:cursor-pointer bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"}
             />
           </div>
           <QuestionConditionField condition={condition} onChangeCondition={setCondition} />
-          {!isLoaded &&
+          {(!data && !error) &&
             <p>読み込み中...</p>
           }
-          {erorrMessage &&
-            <p>{erorrMessage}</p>
+          {error &&
+            <p>サーバにデータの読み込みができなかった...</p>
           }
-          {(!erorrMessage && isLoaded && question.handId !== -1) &&
+          {data &&
             <div className="mb-1">
               <HandViewer
-                handTiles={question.hand.handTiles}
-                openMelds={question.hand.openMelds}
-                winningTile={question.hand.winningTile}
-                upperIndicators={question.hand.situation.upperIndicators}
-                lowerIndicators={question.hand.situation.lowerIndicators}
-                roundWind={question.hand.situation.roundWind}
-                seatWind={question.hand.situation.seatWind}
-                isTsumo={question.hand.situation.isTsumo}
-                isReady={question.hand.situation.isReady}
-                isFirstAroundReady={question.hand.situation.isFirstAroundReady}
-                isFirstAroundWin={question.hand.situation.isFirstAroundWin}
-                isReadyAroundWin={question.hand.situation.isReadyAroundWin}
-                isLastTileWin={question.hand.situation.isLastTileWin}
-                isQuadTileWin={question.hand.situation.isQuadTileWin}
-                isQuadTurnWin={question.hand.situation.isQuadTurnWin}
+                handTiles={data.hand.handTiles}
+                openMelds={data.hand.openMelds}
+                winningTile={data.hand.winningTile}
+                upperIndicators={data.hand.situation.upperIndicators}
+                lowerIndicators={data.hand.situation.lowerIndicators}
+                roundWind={data.hand.situation.roundWind}
+                seatWind={data.hand.situation.seatWind}
+                isTsumo={data.hand.situation.isTsumo}
+                isReady={data.hand.situation.isReady}
+                isFirstAroundReady={data.hand.situation.isFirstAroundReady}
+                isFirstAroundWin={data.hand.situation.isFirstAroundWin}
+                isReadyAroundWin={data.hand.situation.isReadyAroundWin}
+                isLastTileWin={data.hand.situation.isLastTileWin}
+                isQuadTileWin={data.hand.situation.isQuadTileWin}
+                isQuadTurnWin={data.hand.situation.isQuadTurnWin}
               />
             </div>
           }
         </div>
         {/* 回答エリア */}
-        {question &&
+        {data &&
           <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <AnswerForm
-              isTsumo={question.hand.situation.isTsumo}
-              isDealer={question.hand.situation.seatWind === "EAST"}
+              isTsumo={data.hand.situation.isTsumo}
+              isDealer={data.hand.situation.seatWind === "EAST"}
               answer={answer}
               setAnswer={setAnswer}
               isAnswered={isAnswered}
@@ -137,7 +114,7 @@ export default function Home() {
           </div>
         }
         {/* 結果エリア */}
-        {(question && isAnswered) &&
+        {(data && isAnswered) &&
           <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <div className="mb-5">
               {isCorrect &&
@@ -156,15 +133,15 @@ export default function Home() {
             </div>
             <div className="mb-4">
               <HandTypeViewer
-                handTypes={question.score.handTypes}
-                pointTypes={question.score.pointTypes}
+                handTypes={data.score.handTypes}
+                pointTypes={data.score.pointTypes}
               />
             </div>
             <div className="overflow-x-scroll overflow-y-hidden mb-1">
               <ScoreChartTable
-                isDealer={question.score.isDealer}
-                targetPoint={question.score.point}
-                targetDoubles={question.score.doubles}
+                isDealer={data.score.isDealer}
+                targetPoint={data.score.point}
+                targetDoubles={data.score.doubles}
               />
             </div>
           </div>
