@@ -53,14 +53,14 @@ export default function Home() {
       }
     }).catch((error: AxiosError) => {
       setIsLoaded(true);
-      if(error?.response?.status===404){
+      if (error?.response?.status === 404) {
         setErrorMessage("手牌データが見つからなかった...");
       } else {
         setErrorMessage("サーバにデータの読み込みができなかった...");
       }
     })
   }
-  const reloadQuestion = ()=>{
+  const reloadQuestion = () => {
     //initialize states
     setQuestion(EMPTY_QUESTION_RESPONSE);
     setIsLoaded(false);
@@ -86,8 +86,11 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold mb-1">麻雀<span className="text-[#008000]">点数計算</span>練習問題</h1>
             <input type="button"
               value="次の問題"
+              disabled={!isLoaded}
               onClick={reloadQuestion}
-              className="hover:cursor-pointer bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"
+              className={!isLoaded ?
+                "bg-transparent text-gray-400 font-semibold py-1 px-2 border border-gray-400 rounded" :
+                "hover:cursor-pointer bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"}
             />
           </div>
           <QuestionConditionField condition={condition} onChangeCondition={setCondition} />
