@@ -73,13 +73,13 @@ export const EMPTY_SCORE: Score = {
   pointTypes: [],
 }
 
-export const EMPTY_QUESTION_RESPONSE: QuestionResponse = {
+export const EMPTY_QUESTION_RESPONSE: Question = {
   handId: -1,
   hand: EMPTY_HAND,
   score: EMPTY_SCORE
 }
 
-export type QuestionResponse = {
+export type Question = {
   handId: number,
   hand: Hand,
   score: Score
@@ -134,7 +134,7 @@ export type Meld = {
   callFrom: Side
 }
 
-export const isQuestionResponse = (data: any): data is QuestionResponse => {
+export const isQuestion = (data: any): data is Question => {
   return (
     data && typeof data === 'object' &&
     'handId' in data && typeof data.handId === "number" &&

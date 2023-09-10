@@ -1,8 +1,8 @@
-import { ConcealedCondition, DealerCondition, HandType, Meld, PointType, QuestionResponse, Score, Side, Tile, Wind, WinningCondition, isConcealedCondition, isDealerCondition, isTile, isWinningCondition } from "@/type";
+import { ConcealedCondition, DealerCondition, HandType, Meld, PointType, Question, Score, Side, Tile, Wind, WinningCondition, isConcealedCondition, isDealerCondition, isTile, isWinningCondition } from "@/type";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Client } from "pg";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse<QuestionResponse>) {
+export default function handler(req: NextApiRequest, res: NextApiResponse<Question>) {
   const winningConditionString = req.query.winningCondition as string
   const winningCondition: WinningCondition = isWinningCondition(winningConditionString) ? winningConditionString : "all"
 
@@ -48,6 +48,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
     .catch((err) => {
       console.error(err.stack);
       res.status(500).end();
+    })
+    .finally(()=>{
+      client.end();
     })
 }
 
@@ -194,7 +197,7 @@ const createHandFetchQuery = (
   return { query, parameters }
 }
 
-const createResponse = (data: any): QuestionResponse => {
+const createResponse = (data: any): Question => {
   const openMeldsString: string = data.open_melds;
   const openMelds: Meld[] = openMeldsString ?
     Object.values(openMeldsString.split(",")).map(meldString => {

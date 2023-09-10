@@ -3,10 +3,10 @@ import { HandTypeViewer } from "@/components/handTypeViewer";
 import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
-import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score, isQuestionResponse } from "@/type";
-import axios, { AxiosError } from "axios";
+import { DEFAULT_CONDITION, QuestionCondition, Question, Score } from "@/type";
+import Error from "next/error";
 import Head from "next/head";
-import { SVGProps, useEffect, useRef, useState } from "react";
+import { SVGProps, useState } from "react";
 import useSWR from "swr";
 
 const getNonDealerPaymentExpression = (score: number): string => {
@@ -30,12 +30,25 @@ const getExpression = (score: Score, isTsumo: boolean, isDealer: boolean): strin
 }
 
 const API_URL = "api/hand";
-const questionFetcher = async (key: string) => await fetch(key).then(response => response.json());
+
+interface ResponseError {
+  status: number,
+}
+
+const questionFetcher = async (key: string) => await fetch(key).then(response => {
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw { status: 404 }
+    }
+    throw { status: 500 }
+  }
+  return response.json()
+});
 
 export default function Home() {
   const [url, setUrl] = useState<string>(API_URL);
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
-  const { data, error, mutate } = useSWR<QuestionResponse>(url, questionFetcher, { revalidateOnFocus: false });
+  const { data, error, mutate } = useSWR<Question, ResponseError>(url, questionFetcher, { revalidateOnFocus: false });
   const [answer, setAnswer] = useState<Answer>(EMPTY_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const isCorrect = data && (answer.score === data.score.score || answer.score === data.score.adjustedScore);
@@ -74,8 +87,11 @@ export default function Home() {
           {(!data && !error) &&
             <p>読み込み中...</p>
           }
-          {error &&
+          {(error && error.status === 500) &&
             <p>サーバにデータの読み込みができなかった...</p>
+          }
+          {(error && error.status && error.status === 404) &&
+            <p>データがみつからなかった...</p>
           }
           {data &&
             <div className="mb-1">
