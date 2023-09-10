@@ -5,7 +5,9 @@ import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
 import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score, isQuestionResponse } from "@/type";
 import axios from "axios";
+import { GetServerSideProps } from "next";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { SVGProps, useEffect, useState } from "react";
 
 const getNonDealerPaymentExpression = (score: number): string => {
@@ -28,7 +30,12 @@ const getExpression = (score: Score, isTsumo: boolean, isDealer: boolean): strin
     + ((isTsumo && !isDealer) ? `(${getNonDealerPaymentExpression(score.score)})` : "")
 }
 
-export default function Home() {
+interface Props {
+  defaultHandId: string,
+}
+
+export default function Home({defaultHandId}: Props) {
+  const router = useRouter();
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
   const [answer, setAnswer] = useState<Answer>(EMPTY_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
@@ -37,18 +44,13 @@ export default function Home() {
   const [isError, setIsError] = useState<boolean>(false);
   const isCorrect = question && (answer.score === question.score.score || answer.score === question.score.adjustedScore);
   const expression = question ? getExpression(question.score, question.hand.situation.isTsumo, question.hand.situation.seatWind === "EAST") : "";
-  const loadQuestion = (() => {
-    setQuestion(EMPTY_QUESTION_RESPONSE);
-    setIsLoaded(false);
-    setAnswer(EMPTY_ANSWER);
-    setIsAnswered(false);
-    setIsError(false);
-    const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
-    const url = `api/hand?${parameters}`;
+  const loadQuestion = (parameters: string) => {
+    const url = parameters? `api/hand?${parameters}`:"api/hand";
     axios.get(url).then((response) => {
       setIsLoaded(true);
       if (response.data && isQuestionResponse(response.data)) {
         setQuestion(response.data);
+        router.push(`?id=${response.data.handId}`);
       } else {
         setIsError(true);
       }
@@ -56,9 +58,21 @@ export default function Home() {
       console.log(error);
       setIsError(true);
     })
-  })
+  }
+  const reloadQuestion = ()=>{
+    //initialize states
+    setQuestion(EMPTY_QUESTION_RESPONSE);
+    setIsLoaded(false);
+    setAnswer(EMPTY_ANSWER);
+    setIsAnswered(false);
+    setIsError(false);
+    const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
+    // reload
+    loadQuestion(parameters);
+  }
   useEffect(() => {
-    loadQuestion();
+    const parameters = defaultHandId? `handId=${defaultHandId}`:"";
+    loadQuestion(parameters);
   }, [])
   return (
     <>
@@ -73,7 +87,7 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold mb-1">麻雀<span className="text-[#008000]">点数計算</span>練習問題</h1>
             <input type="button"
               value="次の問題"
-              onClick={loadQuestion}
+              onClick={reloadQuestion}
               className="hover:cursor-pointer bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"
             />
           </div>
@@ -180,4 +194,9 @@ export function AkarIconsCircleX(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}><g fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M15 15L9 9m6 0l-6 6"></path><circle cx="12" cy="12" r="10"></circle></g></svg>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+	const defaultHandId = parseInt(context.query.id as string) || "";
+  return { props: { defaultHandId }}
 }

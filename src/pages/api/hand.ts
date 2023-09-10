@@ -15,7 +15,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
   const doublesLowerLimit = parseInt(req.query.doublesLowerLimit as string) || 0
   const doublesUpperLimit = parseInt(req.query.doublesUpperLimit as string) || 0
 
-  const { query, parameters } = createHandFetchQuery(winningCondition, dealerCondition, concealedCondition, doublesLowerLimit, doublesUpperLimit)
+  const handIdString = req.query.handId as string
+  const handId: number | undefined = parseInt(handIdString) || undefined
+
+  const { query, parameters } = createHandFetchQuery(winningCondition, dealerCondition, concealedCondition, doublesLowerLimit, doublesUpperLimit, handId)
 
   // console.log("DB_USER=" + process.env.DB_USER);
   // console.log("DB_PASS=" + process.env.DB_PASS);
@@ -66,6 +69,7 @@ const createHandFetchQuery = (
   concealedCondition: ConcealedCondition,
   doublesLowerLimit: number,
   doublesUpperLimit: number,
+  handId?: number,
 ): QueryAndParameters => {
   const conditions: string[] = []
   const parameters: string[] = []
@@ -107,7 +111,13 @@ const createHandFetchQuery = (
     parameters.push(doublesUpperLimit.toString())
   }
 
+  if(handId) {
+    conditions.push(`h.HAND_ID = $${parameters.length + 1}`)
+    parameters.push(handId.toString())
+  }
+
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""
+  console.log("where: "+whereClause);
 
   const query = `
     SELECT
