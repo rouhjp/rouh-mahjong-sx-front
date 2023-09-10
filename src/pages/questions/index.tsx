@@ -5,9 +5,7 @@ import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
 import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score, isQuestionResponse } from "@/type";
 import axios, { AxiosError } from "axios";
-import { GetServerSideProps } from "next";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { SVGProps, useEffect, useState } from "react";
 
 const getNonDealerPaymentExpression = (score: number): string => {
@@ -34,8 +32,7 @@ interface Props {
   defaultHandId: string,
 }
 
-export default function Home({defaultHandId}: Props) {
-  const router = useRouter();
+export default function Home() {
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
   const [answer, setAnswer] = useState<Answer>(EMPTY_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
@@ -44,13 +41,13 @@ export default function Home({defaultHandId}: Props) {
   const [erorrMessage, setErrorMessage] = useState<string>("");
   const isCorrect = question && (answer.score === question.score.score || answer.score === question.score.adjustedScore);
   const expression = question ? getExpression(question.score, question.hand.situation.isTsumo, question.hand.situation.seatWind === "EAST") : "";
-  const loadQuestion = (parameters: string) => {
-    const url = parameters? `api/hand?${parameters}`:"api/hand";
+  const loadQuestion = () => {
+    const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
+    const url = `api/hand?${parameters}`;
     axios.get(url).then((response) => {
       setIsLoaded(true);
       if (response.data && isQuestionResponse(response.data)) {
         setQuestion(response.data);
-        router.push(`questions?id=${response.data.handId}`);
       } else {
         setErrorMessage("エラーが発生した...");
       }
@@ -70,13 +67,11 @@ export default function Home({defaultHandId}: Props) {
     setAnswer(EMPTY_ANSWER);
     setIsAnswered(false);
     setErrorMessage("");
-    const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
     // reload
-    loadQuestion(parameters);
+    loadQuestion();
   }
   useEffect(() => {
-    const parameters = defaultHandId? `handId=${defaultHandId}`:"";
-    loadQuestion(parameters);
+    loadQuestion();
   }, [])
   return (
     <>
@@ -195,9 +190,4 @@ export function AkarIconsCircleX(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}><g fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M15 15L9 9m6 0l-6 6"></path><circle cx="12" cy="12" r="10"></circle></g></svg>
   )
-}
-
-export const getServerSideProps: GetServerSideProps = async (context) => {
-	const defaultHandId = parseInt(context.query.id as string) || "";
-  return { props: { defaultHandId }}
 }
