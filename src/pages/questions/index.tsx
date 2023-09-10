@@ -50,7 +50,7 @@ export default function Home({defaultHandId}: Props) {
       setIsLoaded(true);
       if (response.data && isQuestionResponse(response.data)) {
         setQuestion(response.data);
-        router.push(`?id=${response.data.handId}`);
+        router.push(`questions?id=${response.data.handId}`);
       } else {
         setIsError(true);
       }
