@@ -4,7 +4,7 @@ import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
 import { DEFAULT_CONDITION, EMPTY_QUESTION_RESPONSE, QuestionCondition, QuestionResponse, Score, isQuestionResponse } from "@/type";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -41,7 +41,7 @@ export default function Home({defaultHandId}: Props) {
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [question, setQuestion] = useState<QuestionResponse>(EMPTY_QUESTION_RESPONSE);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
-  const [isError, setIsError] = useState<boolean>(false);
+  const [erorrMessage, setErrorMessage] = useState<string>("");
   const isCorrect = question && (answer.score === question.score.score || answer.score === question.score.adjustedScore);
   const expression = question ? getExpression(question.score, question.hand.situation.isTsumo, question.hand.situation.seatWind === "EAST") : "";
   const loadQuestion = (parameters: string) => {
@@ -52,11 +52,15 @@ export default function Home({defaultHandId}: Props) {
         setQuestion(response.data);
         router.push(`questions?id=${response.data.handId}`);
       } else {
-        setIsError(true);
+        setErrorMessage("エラーが発生した...");
       }
-    }).catch(error => {
-      console.log(error);
-      setIsError(true);
+    }).catch((error: AxiosError) => {
+      setIsLoaded(true);
+      if(error?.response?.status===404){
+        setErrorMessage("手牌データが見つからなかった...");
+      } else {
+        setErrorMessage("サーバにデータの読み込みができなかった...");
+      }
     })
   }
   const reloadQuestion = ()=>{
@@ -65,7 +69,7 @@ export default function Home({defaultHandId}: Props) {
     setIsLoaded(false);
     setAnswer(EMPTY_ANSWER);
     setIsAnswered(false);
-    setIsError(false);
+    setErrorMessage("");
     const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
     // reload
     loadQuestion(parameters);
@@ -95,13 +99,10 @@ export default function Home({defaultHandId}: Props) {
           {!isLoaded &&
             <p>読み込み中...</p>
           }
-          {isError &&
-            <p>サーバにデータの読み込みができなかった...</p>
+          {erorrMessage &&
+            <p>{erorrMessage}</p>
           }
-          {(!isError && isLoaded && question.handId == -1) &&
-            <p>手牌データが見つからなかった...</p>
-          }
-          {(!isError && isLoaded && question.handId !== -1) &&
+          {(!erorrMessage && isLoaded && question.handId !== -1) &&
             <div className="mb-1">
               <HandViewer
                 handTiles={question.hand.handTiles}

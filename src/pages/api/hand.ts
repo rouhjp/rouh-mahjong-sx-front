@@ -1,4 +1,4 @@
-import { ConcealedCondition, DealerCondition, EMPTY_QUESTION_RESPONSE, HandType, Meld, PointType, QuestionResponse, Score, Side, Tile, Wind, WinningCondition, isConcealedCondition, isDealerCondition, isTile, isWinningCondition } from "@/type";
+import { ConcealedCondition, DealerCondition, HandType, Meld, PointType, QuestionResponse, Score, Side, Tile, Wind, WinningCondition, isConcealedCondition, isDealerCondition, isTile, isWinningCondition } from "@/type";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Client } from "pg";
 
@@ -34,28 +34,21 @@ export default function handler(req: NextApiRequest, res: NextApiResponse<Questi
     database: process.env.DB_NAME
   })
 
-  client.connect()
+  return client.connect()
     .then(() => {
-      client.query(query, parameters, (err, result) => {
-        if (err || !result) {
-          console.log("something went wrong", err);
-          res.status(500).send(EMPTY_QUESTION_RESPONSE);
-          return;
-        }
-        const data = result.rows[0];
-        if (!data) {
-          console.log("not found");
-          res.status(404).send(EMPTY_QUESTION_RESPONSE);
-          return;
-        }
-        // console.log(data);
-        res.status(200).send(createResponse(data));
-      })
+      return client.query(query, parameters);
+    })
+    .then((result) => {
+      if (!result.rows[0]) {
+        res.status(404).end();
+        return;
+      }
+      res.status(200).end(JSON.stringify(createResponse(result.rows[0])));
     })
     .catch((err) => {
       console.error(err.stack);
-      res.status(500).send(EMPTY_QUESTION_RESPONSE);
-    });
+      res.status(500).end();
+    })
 }
 
 type QueryAndParameters = {
@@ -111,13 +104,12 @@ const createHandFetchQuery = (
     parameters.push(doublesUpperLimit.toString())
   }
 
-  if(handId) {
+  if (handId) {
     conditions.push(`h.HAND_ID = $${parameters.length + 1}`)
     parameters.push(handId.toString())
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : ""
-  console.log("where: "+whereClause);
 
   const query = `
     SELECT
@@ -212,16 +204,16 @@ const createResponse = (data: any): QuestionResponse => {
     }) : [];
   const handTypesString: string = data.hand_types;
   const pointTypesString: string = data.point_types;
-  const handTypes: HandType[] = handTypesString? Object.values(handTypesString.split(",")).map(handTypeString => {
+  const handTypes: HandType[] = handTypesString ? Object.values(handTypesString.split(",")).map(handTypeString => {
     const name: string = handTypeString.split(":")[0];
     const grade: string = handTypeString.split(":")[1];
     return { name, grade }
-  }): [];
-  const pointTypes: PointType[] = pointTypesString? Object.values(pointTypesString.split(",")).map(pointTypeString => {
+  }) : [];
+  const pointTypes: PointType[] = pointTypesString ? Object.values(pointTypesString.split(",")).map(pointTypeString => {
     const name: string = pointTypeString.split(":")[0];
     const point: number = parseInt(pointTypeString.split(":")[1]) || 0;
     return { name, point }
-  }): [];
+  }) : [];
   const score: Score = {
     point: data.point,
     doubles: data.doubles,
