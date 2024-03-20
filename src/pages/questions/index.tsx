@@ -4,6 +4,7 @@ import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
 import { DEFAULT_CONDITION, QuestionCondition, Question, Score, isQuestion } from "@/type";
+import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { SVGProps, useEffect, useState } from "react";
@@ -102,7 +103,10 @@ export default function Home() {
       <Head>
         <title>麻雀点数計算練習 </title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:title" content="麻雀点数計算練習" />
+        <meta property="og:description" content="麻雀点数計算練習を練習するアプリです" />
         <meta property="og:image" content={ogImageUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <main className="space-y-2 mt-2">
         {/* 出題エリア */}
@@ -218,4 +222,8 @@ export function AkarIconsCircleX(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}><g fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" d="M15 15L9 9m6 0l-6 6"></path><circle cx="12" cy="12" r="10"></circle></g></svg>
   )
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  return { props: {}};
 }
