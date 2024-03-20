@@ -52,6 +52,8 @@ export default function Home() {
   const isCorrect = question && (answer.score === question.score.score || answer.score === question.score.adjustedScore);
   const expression = question ? getExpression(question.score, question.hand.situation.isTsumo, question.hand.situation.seatWind === "EAST") : "";
   const ogImageUrl = question ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/ogp/${getOgpExpression(question)}` : "";
+  //TODO SSR対応
+  const ogFixedImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/ogp/M1M1M1M2M3M4M5M6M7M8M9M9M9-M5`
 
   // 問題データ取得
   const fetchQuestion = async (key: string) => {
@@ -105,7 +107,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content="麻雀点数計算練習" />
         <meta property="og:description" content="麻雀点数計算練習を練習するアプリです" />
-        <meta property="og:image" content={ogImageUrl} />
+        <meta property="og:image" content={ogFixedImageUrl} />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <main className="space-y-2 mt-2">
