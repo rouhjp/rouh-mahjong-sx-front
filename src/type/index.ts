@@ -1,4 +1,3 @@
-
 export type DealerCondition = keyof typeof DEALER_CONDITION
 export const isDealerCondition = (value: any): value is DealerCondition => Object.keys(DEALER_CONDITION).includes(value);
 export const DEALER_CONDITION = {
@@ -14,7 +13,6 @@ export const CONCEALED_CONDITION = {
   concealed: "門前",
   called: "鳴き",
 }
-
 
 export type WinningCondition = keyof typeof WINNING_CONDITION
 export const isWinningCondition = (value: any): value is WinningCondition => Object.keys(WINNING_CONDITION).includes(value);
@@ -39,7 +37,6 @@ export const DEFAULT_CONDITION: QuestionCondition = {
   doublesLowerLimit: 0,
   doublesUpperLimit: 0,
 }
-
 
 export const EMPTY_HAND: Hand = {
   handTiles: [],

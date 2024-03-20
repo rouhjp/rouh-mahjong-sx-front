@@ -3,11 +3,10 @@ import { HandTypeViewer } from "@/components/handTypeViewer";
 import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
-import { DEFAULT_CONDITION, QuestionCondition, Question, Score } from "@/type";
-import Error from "next/error";
+import { DEFAULT_CONDITION, QuestionCondition, Question, Score, isQuestion } from "@/type";
 import Head from "next/head";
-import { SVGProps, useState } from "react";
-import useSWR from "swr";
+import { useRouter } from "next/router";
+import { SVGProps, useEffect, useState } from "react";
 
 const getNonDealerPaymentExpression = (score: number): string => {
   const dealerPayment = Math.ceil((score || 0) / 2 / 100) * 100;
@@ -29,45 +28,81 @@ const getExpression = (score: Score, isTsumo: boolean, isDealer: boolean): strin
     + ((isTsumo && !isDealer) ? `(${getNonDealerPaymentExpression(score.score)})` : "")
 }
 
-const API_URL = "api/hand";
-
-interface ResponseError {
-  status: number,
+const getOgpExpression = (question: Question): string => {
+  const chunks = [];
+  chunks.push(question.hand.handTiles.join(''));
+  chunks.push(question.hand.winningTile);
+  for (const meld of question.hand.openMelds) {
+    chunks.push(meld.meldTiles.slice(0, 3).join(''));
+  }
+  return chunks.join('-');
 }
 
-const questionFetcher = async (key: string) => await fetch(key).then(response => {
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw { status: 404 }
-    }
-    throw { status: 500 }
-  }
-  return response.json()
-});
+const API_URL = 'api/hand';
 
 export default function Home() {
-  const [url, setUrl] = useState<string>(API_URL);
+  const router = useRouter();
   const [condition, setCondition] = useState<QuestionCondition>(DEFAULT_CONDITION);
-  const { data, error, mutate } = useSWR<Question, ResponseError>(url, questionFetcher, { revalidateOnFocus: false });
+  const [question, setQuestion] = useState<Question>();
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [answer, setAnswer] = useState<Answer>(EMPTY_ANSWER);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
-  const isCorrect = data && (answer.score === data.score.score || answer.score === data.score.adjustedScore);
-  const expression = data ? getExpression(data.score, data.hand.situation.isTsumo, data.hand.situation.seatWind === "EAST") : "";
-  const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
+
+  const isCorrect = question && (answer.score === question.score.score || answer.score === question.score.adjustedScore);
+  const expression = question ? getExpression(question.score, question.hand.situation.isTsumo, question.hand.situation.seatWind === "EAST") : "";
+  const ogImageUrl = question ? `${process.env.NEXT_PUBLIC_BASE_URL}/api/ogp/${getOgpExpression(question)}` : "";
+
+  // 問題データ取得
+  const fetchQuestion = async (key: string) => {
+    console.log(key);
+    const response = await fetch(key);
+    if(!response || response.status==500) {
+      setErrorMessage("サーバにデータの読み込みができなかった...");
+    }else if(response.status==400) {
+      setErrorMessage("データがみつからなかった...");
+    }else{
+      const data = await response.json();
+      if(isQuestion(data)){
+        setQuestion(data);
+        setErrorMessage("");
+        router.push({pathname: router.pathname, query: {id: data.handId}}, undefined, {shallow: true})
+      } else {
+        setErrorMessage("予期せぬエラーが発生した...");
+      }
+    }
+  }
+
+  // 初期問題データ取得
+  useEffect(()=>{
+    if(!router.isReady) return;
+    const getFetchKey = () => {
+      const params = new URLSearchParams();
+      if(router.query.id) {
+        params.set('handId', String(router.query.id));
+      }
+      return `${API_URL}?${params.toString()}`
+    }
+    fetchQuestion(getFetchKey());
+  }, [router.isReady]);
+
+  // 次の問題データ取得
   const reloadQuestion = () => {
-    //initialize states
+    setQuestion(undefined)
     setAnswer(EMPTY_ANSWER);
     setIsAnswered(false);
-    const random = `random=${Date.now()}` //add random arguments for avoiding cache
-    setUrl(`${API_URL}?${parameters}&${random}`);
-    mutate(null, false); // clear data
-    mutate(); // execute api
+    const getNextFetchKey = () => {
+      const parameters = Object.entries(condition).map(([key, value]) => `${key}=${value}`).join("&");
+      return `${API_URL}?${parameters}`
+    }
+    fetchQuestion(getNextFetchKey());
   }
+
   return (
     <>
       <Head>
         <title>麻雀点数計算練習 </title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta property="og:image" content={ogImageUrl} />
       </Head>
       <main className="space-y-2 mt-2">
         {/* 出題エリア */}
@@ -76,51 +111,48 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold mb-1">麻雀<span className="text-[#008000]">点数計算</span>練習問題</h1>
             <input type="button"
               value="次の問題"
-              disabled={!data && !error}
+              disabled={!question && !errorMessage}
               onClick={reloadQuestion}
-              className={(!data && !error) ?
+              className={(!question && !errorMessage) ?
                 "bg-transparent text-gray-400 font-semibold py-1 px-2 border border-gray-400 rounded" :
                 "hover:cursor-pointer bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"}
             />
           </div>
           <QuestionConditionField condition={condition} onChangeCondition={setCondition} />
-          {(!data && !error) &&
+          {(!question && !errorMessage) &&
             <p>読み込み中...</p>
           }
-          {(error && error.status === 500) &&
-            <p>サーバにデータの読み込みができなかった...</p>
+          {errorMessage &&
+            <p>{errorMessage}</p>
           }
-          {(error && error.status && error.status === 404) &&
-            <p>データがみつからなかった...</p>
-          }
-          {data &&
+          {question &&
             <div className="mb-1">
               <HandViewer
-                handTiles={data.hand.handTiles}
-                openMelds={data.hand.openMelds}
-                winningTile={data.hand.winningTile}
-                upperIndicators={data.hand.situation.upperIndicators}
-                lowerIndicators={data.hand.situation.lowerIndicators}
-                roundWind={data.hand.situation.roundWind}
-                seatWind={data.hand.situation.seatWind}
-                isTsumo={data.hand.situation.isTsumo}
-                isReady={data.hand.situation.isReady}
-                isFirstAroundReady={data.hand.situation.isFirstAroundReady}
-                isFirstAroundWin={data.hand.situation.isFirstAroundWin}
-                isReadyAroundWin={data.hand.situation.isReadyAroundWin}
-                isLastTileWin={data.hand.situation.isLastTileWin}
-                isQuadTileWin={data.hand.situation.isQuadTileWin}
-                isQuadTurnWin={data.hand.situation.isQuadTurnWin}
+                handTiles={question.hand.handTiles}
+                openMelds={question.hand.openMelds}
+                winningTile={question.hand.winningTile}
+                upperIndicators={question.hand.situation.upperIndicators}
+                lowerIndicators={question.hand.situation.lowerIndicators}
+                roundWind={question.hand.situation.roundWind}
+                seatWind={question.hand.situation.seatWind}
+                isTsumo={question.hand.situation.isTsumo}
+                isReady={question.hand.situation.isReady}
+                isFirstAroundReady={question.hand.situation.isFirstAroundReady}
+                isFirstAroundWin={question.hand.situation.isFirstAroundWin}
+                isReadyAroundWin={question.hand.situation.isReadyAroundWin}
+                isLastTileWin={question.hand.situation.isLastTileWin}
+                isQuadTileWin={question.hand.situation.isQuadTileWin}
+                isQuadTurnWin={question.hand.situation.isQuadTurnWin}
               />
             </div>
           }
         </div>
         {/* 回答エリア */}
-        {data &&
+        {question &&
           <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <AnswerForm
-              isTsumo={data.hand.situation.isTsumo}
-              isDealer={data.hand.situation.seatWind === "EAST"}
+              isTsumo={question.hand.situation.isTsumo}
+              isDealer={question.hand.situation.seatWind === "EAST"}
               answer={answer}
               setAnswer={setAnswer}
               isAnswered={isAnswered}
@@ -130,7 +162,7 @@ export default function Home() {
           </div>
         }
         {/* 結果エリア */}
-        {(data && isAnswered) &&
+        {(question && isAnswered) &&
           <div className="bg-white border mx-auto max-w-[800px] p-2 md:p-4 drop-shadow">
             <div className="mb-5">
               {isCorrect &&
@@ -149,15 +181,15 @@ export default function Home() {
             </div>
             <div className="mb-4">
               <HandTypeViewer
-                handTypes={data.score.handTypes}
-                pointTypes={data.score.pointTypes}
+                handTypes={question.score.handTypes}
+                pointTypes={question.score.pointTypes}
               />
             </div>
             <div className="overflow-x-scroll overflow-y-hidden mb-1">
               <ScoreChartTable
-                isDealer={data.score.isDealer}
-                targetPoint={data.score.point}
-                targetDoubles={data.score.doubles}
+                isDealer={question.score.isDealer}
+                targetPoint={question.score.point}
+                targetDoubles={question.score.doubles}
               />
             </div>
           </div>
