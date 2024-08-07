@@ -124,10 +124,15 @@ export default function Home() {
                 "hover:cursor-pointer bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-1 px-2 border border-blue-500 hover:border-transparent rounded"}
             />
           </div>
-          <QuestionConditionField condition={condition} onChangeCondition={setCondition} />
-          {(!question && !errorMessage) &&
+          {/* <QuestionConditionField condition={condition} onChangeCondition={setCondition} /> */}
+          
+          {/* 一時停止注意書き */}
+          <p>費用がかさばるため、運用を一時的に停止しております。</p>
+          {/* 一時停止注意書き */}
+
+          {/* {(!question && !errorMessage) &&
             <p>読み込み中...</p>
-          }
+          } */}
           {errorMessage &&
             <p>{errorMessage}</p>
           }
