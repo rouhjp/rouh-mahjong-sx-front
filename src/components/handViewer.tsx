@@ -1,6 +1,5 @@
 import { Meld, Tile, Wind } from "@/type"
 import { memo } from "react"
-import { TileImage } from "./atoms/tileImage";
 
 const getWindText = (code: string): string => {
   switch (code) {
@@ -85,7 +84,7 @@ export const HandViewer = memo(function HandViewerContent({
         <ul className="flex-wrap">
           {[...handTiles, winningTile].map((handTile, index) =>
             <li key={index} className="inline-block last:ml-2">
-              <TileImage tile={handTile} />
+              <img className="w-10" src={`tiles/${handTile}.jpg`} />
             </li>
           )}
         </ul>
@@ -100,7 +99,7 @@ export const HandViewer = memo(function HandViewerContent({
                   <ul key={meldIndex} className="flex">
                     {meldTiles.map((tile, tileIndex) =>
                       <li key={tileIndex}>
-                        <TileImage tile={tile} />
+                        <img className="w-10" src={`tiles/${tile}.jpg`} />
                       </li>
                     )}
                   </ul>
@@ -115,14 +114,14 @@ export const HandViewer = memo(function HandViewerContent({
         <ul className="flex">
           {upperIndicatorWall.map((indicator, index) =>
             <li key={index}>
-              <TileImage tile={indicator} />
+              <img className="w-10" src={`tiles/${indicator}.jpg`} />
             </li>
           )}
         </ul>
         <ul className="flex">
           {lowerIndicatorWall.map((indicator, index) =>
             <li key={index}>
-              <TileImage tile={indicator} />
+              <img className="w-10" src={`tiles/${indicator}.jpg`} />
             </li>
           )}
         </ul>

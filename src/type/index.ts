@@ -209,7 +209,7 @@ export const isMeld = (data: any): data is Meld => {
 
 const SIDE_VALUES = ["SELF", "RIGHT", "ACROSS", "LEFT"];
 const WIND_VALUES = ["EAST", "SOUTH", "WEST", "NORTH"];
-const TILE_VALUES = [
+export const TILE_VALUES = [
   "M1", "M2", "M3", "M4", "M5", "M5R", "M6", "M7", "M8", "M9",
   "P1", "P2", "P3", "P4", "P5", "P5R", "P6", "P7", "P8", "P9",
   "S1", "S2", "S3", "S4", "S5", "S5R", "S6", "S7", "S8", "S9",
