@@ -1,5 +1,6 @@
 import { Meld, Tile, Wind } from "@/type"
 import { memo } from "react"
+import { TileImage } from "./atoms/tileImage";
 
 const getWindText = (code: string): string => {
   switch (code) {
@@ -51,15 +52,24 @@ export const HandViewer = memo(function HandViewerContent({
   isQuadTileWin = false,
   isQuadTurnWin = false,
 }: Props) {
+  const isDealer = seatWind === "EAST";
   const upperIndicatorWall = Array.from(Array(5).keys()).map((index) => upperIndicators[index] || "back");
   const lowerIndicatorWall = Array.from(Array(5).keys()).map((index) => lowerIndicators[index] || "back");
-  const isDealer = seatWind === "EAST";
-  const isDoubleReady = isFirstAroundReady;
-  const isSingleReady = isReady && !isFirstAroundReady;
-  const isBlessingOfHeaven = isFirstAroundWin && isTsumo && isDealer;
-  const isBlessingOfEarth = isFirstAroundWin && isTsumo && !isDealer;
-  const isLastTurnTsumo = isLastTileWin && isTsumo;
-  const isLastTurnRon = isLastTileWin && !isTsumo;
+
+  const getOptions = () => {
+    const options = [];
+    if (isFirstAroundReady) options.push("ダブル立直");
+    if (isReady && !isFirstAroundReady) options.push("立直");
+    if (isFirstAroundWin && isTsumo && isDealer) options.push("天和");
+    if (isFirstAroundWin && isTsumo && !isDealer) options.push("地和");
+    if (isReadyAroundWin) options.push("一発");
+    if (isQuadTileWin) options.push("槍槓");
+    if (isQuadTurnWin) options.push("嶺上開花");
+    if (isLastTileWin && isTsumo) options.push("海底摸月");
+    if (isLastTileWin && !isTsumo) options.push("河底撈魚");
+    return options;
+  }
+
   return (
     <div>
       <ul className="flex-wrap space-x-1 space-y-1 mb-2">
@@ -67,39 +77,15 @@ export const HandViewer = memo(function HandViewerContent({
         <li className="inline-block bg-white border border-[#696969] px-2">自風:{getWindText(seatWind)}</li>
         <li className="inline-block bg-white border border-[#696969] px-2">{isDealer ? "親" : "子"}</li>
         <li className="inline-block bg-white border border-[#696969] px-2">{isTsumo ? "ツモ" : "ロン"}</li>
-        {isDoubleReady &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">ダブル立直</li>
-        }
-        {isSingleReady &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">立直</li>
-        }
-        {isBlessingOfHeaven &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">天和</li>
-        }
-        {isBlessingOfEarth &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">地和</li>
-        }
-        {isReadyAroundWin &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">一発</li>
-        }
-        {isQuadTileWin &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">槍槓</li>
-        }
-        {isQuadTurnWin &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">嶺上開花</li>
-        }
-        {isLastTurnTsumo &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">海底摸月</li>
-        }
-        {isLastTurnRon &&
-          <li className="inline-block bg-white border border-[#696969] rounded-full px-2">河底撈魚</li>
-        }
+        {getOptions().map((option, index) =>
+          <li key={index} className="inline-block bg-white border border-[#696969] rounded-full px-2">{option}</li>
+        )}
       </ul>
       <div className="flex-wrap md:flex gap-4">
         <ul className="flex-wrap">
-          {Object.values([...handTiles, winningTile]).map((handTile, index) =>
+          {[...handTiles, winningTile].map((handTile, index) =>
             <li key={index} className="inline-block last:ml-2">
-              <img className="w-10" src={`tiles/${handTile}.jpg`} />
+              <TileImage tile={handTile} />
             </li>
           )}
         </ul>
@@ -107,14 +93,14 @@ export const HandViewer = memo(function HandViewerContent({
           <>
             <p className="md:hidden text-sm">副露</p>
             <div className="flex gap-1">
-              {Object.values(openMelds).map((meld, meldIndex) => {
+              {openMelds.map((meld, meldIndex) => {
                 const isSelfQuad = meld.callFrom === "SELF" && meld.meldTiles.length === 4;
                 const meldTiles = isSelfQuad ? ["back", meld.meldTiles[1], meld.meldTiles[2], "back"] : meld.meldTiles;
                 return (
                   <ul key={meldIndex} className="flex">
-                    {Object.values(meldTiles).map((tile, tileIndex) =>
+                    {meldTiles.map((tile, tileIndex) =>
                       <li key={tileIndex}>
-                        <img className="w-10" src={`tiles/${tile}.jpg`} />
+                        <TileImage tile={tile} />
                       </li>
                     )}
                   </ul>
@@ -127,20 +113,20 @@ export const HandViewer = memo(function HandViewerContent({
       <p className="text-sm">ドラ表示牌</p>
       <div className="flex gap-2">
         <ul className="flex">
-          {Object.values(upperIndicatorWall).map((indicator, index) =>
+          {upperIndicatorWall.map((indicator, index) =>
             <li key={index}>
-              <img className="w-10" src={`tiles/${indicator}.jpg`} />
+              <TileImage tile={indicator} />
             </li>
           )}
         </ul>
         <ul className="flex">
-          {Object.values(lowerIndicatorWall).map((indicator, index) =>
+          {lowerIndicatorWall.map((indicator, index) =>
             <li key={index}>
-              <img className="w-10" src={`tiles/${indicator}.jpg`} />
+              <TileImage tile={indicator} />
             </li>
           )}
         </ul>
       </div>
     </div>
   )
-})
+});
