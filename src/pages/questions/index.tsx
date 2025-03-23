@@ -3,11 +3,11 @@ import { HandTypeViewer } from "@/components/handTypeViewer";
 import { HandViewer } from "@/components/handViewer";
 import { QuestionConditionField } from "@/components/questionConditionField";
 import { ScoreChartTable } from "@/components/scoreChartTable";
+import { useQuestion } from "@/hooks/useQuestion";
 import { Score } from "@/type";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 import { SVGProps, useState } from "react";
-import { useQuestion } from "../hooks/useQuestion";
 
 const getNonDealerPaymentExpression = (score: number): string => {
   const dealerPayment = Math.ceil((score || 0) / 2 / 100) * 100;
