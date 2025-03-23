@@ -3,16 +3,9 @@ import { memo } from "react";
 const POINT_STEPS = [20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110];
 const DOUBLES_STEPS = [1, 2, 3, 4, 5, 6, 8, 11, 13];
 
-const getDoublesRowIndex = (targetDoubles?: number): number => {
-  if (targetDoubles) {
-    const index = Object.values(DOUBLES_STEPS)
-      .findIndex(doubles => doubles > targetDoubles);
-    if (index != -1) {
-      return index - 1;
-    }
-    return DOUBLES_STEPS.length - 1;
-  }
-  return -1;
+const getDoublesRowIndex = (targetDoubles: number): number | null => {
+  const index = DOUBLES_STEPS.findIndex(doubles => doubles > targetDoubles);
+  return index === -1 ? DOUBLES_STEPS.length - 1 : index - 1;
 }
 
 const getDoublesRowText = (index: number): string => {
@@ -24,7 +17,7 @@ const getDoublesRowText = (index: number): string => {
     }
     return `${doubles}-${nextDoubles - 1}飜`
   } else {
-    return `${doubles}-飜`
+    return `${doubles}飜-`
   }
 }
 
@@ -50,13 +43,8 @@ const getLimitType = (point: number, doubles: number): string => {
   return "";
 }
 
-const DEALER_SCORE_MAP = Object.values(DOUBLES_STEPS)
-  .map(doubles => Object.values(POINT_STEPS)
-    .map(point => getScore(point, doubles, true)));
-
-const NON_DEALER_SCORE_MAP = Object.values(DOUBLES_STEPS)
-  .map(doubles => Object.values(POINT_STEPS)
-    .map(point => getScore(point, doubles, false)));
+const DEALER_SCORE_TABLE = DOUBLES_STEPS.map(doubles => POINT_STEPS.map(point => getScore(point, doubles, true)));
+const NON_DEALER_SCORE_TABLE = DOUBLES_STEPS.map(doubles => POINT_STEPS.map(point => getScore(point, doubles, false)));
 
 interface Props {
   isDealer?: boolean,
@@ -67,11 +55,11 @@ interface Props {
 //点数早見表コンポーネント
 export const ScoreChartTable = memo(function ScoreChartTableContent({
   isDealer = false, //親かどうか
-  targetPoint = -1, //ハイライトする符
-  targetDoubles = -1, //ハイライトする飜(役満の場合は13を指定する)
+  targetPoint, //ハイライトする符
+  targetDoubles, //ハイライトする飜(役満の場合は13を指定する)
 }: Props) {
-  const currentRowIndex = getDoublesRowIndex(targetDoubles);
-  const score_map = isDealer ? DEALER_SCORE_MAP : NON_DEALER_SCORE_MAP;
+  const highlightedRowIndex = targetDoubles && getDoublesRowIndex(targetDoubles);
+  const scoreTable = isDealer ? DEALER_SCORE_TABLE : NON_DEALER_SCORE_TABLE;
   return (
     <table>
       <tbody className="text-center">
@@ -81,7 +69,7 @@ export const ScoreChartTable = memo(function ScoreChartTableContent({
             {isDealer ? "親" : "子"}
           </th>
           {/* 表の上部 */}
-          {Object.values(POINT_STEPS).map((point, index) =>
+          {POINT_STEPS.map((point, index) =>
             <th key={index}
               className={[
                 "border border-black p-1",
@@ -92,27 +80,34 @@ export const ScoreChartTable = memo(function ScoreChartTableContent({
           )}
         </tr>
         {/* 表の下部 */}
-        {Object.values(DOUBLES_STEPS).map((doubles, rowIndex) =>
+        {DOUBLES_STEPS.map((doubles, rowIndex) =>
           <tr key={rowIndex}>
             {/* 表の左部 */}
             <th className={[
               "border border-black p-1",
-              rowIndex === currentRowIndex ? "bg-[#E9967A]" : "bg-[#F1F1F1]",
+              rowIndex === highlightedRowIndex ? "bg-[#E9967A]" : "bg-[#F1F1F1]",
             ].join(" ")}>
               {getDoublesRowText(rowIndex)}
             </th>
             {/* 表の中央部 */}
-            {Object.values(POINT_STEPS).map((point, colIndex) => {
-              const score = score_map[rowIndex][colIndex];
-              const scoreTop = score_map[rowIndex - 1]?.[colIndex];
-              const scoreLeft = score_map[rowIndex]?.[colIndex - 1];
-              const scoreRight = score_map[rowIndex]?.[colIndex + 1];
-              const scoreBottom = score_map[rowIndex + 1]?.[colIndex];
-              const limitType = getLimitType(point, doubles);
-              const isTarget = doubles >= 2 || point >= 30;
-              const showLimit = limitType && rowIndex >= 4 && colIndex === 4;
-              const showScore = !limitType || (rowIndex >= 4 && colIndex === 5);
-              const text = showLimit ? limitType : showScore ? (isTarget ? score : "-") : ""
+            {POINT_STEPS.map((point, colIndex) => {
+              const score = scoreTable[rowIndex][colIndex];
+              const scoreTop = scoreTable[rowIndex - 1]?.[colIndex];
+              const scoreLeft = scoreTable[rowIndex]?.[colIndex - 1];
+              const scoreRight = scoreTable[rowIndex]?.[colIndex + 1];
+              const scoreBottom = scoreTable[rowIndex + 1]?.[colIndex];
+              const getText = () =>{
+                if (doubles < 2 && point < 30) return "-"; // 存在しない点数
+                const limitType = getLimitType(point, doubles);
+                if(limitType) {
+                  //満貫以上の場合
+                  if (rowIndex === 3) return "";
+                  if (colIndex === 4) return limitType; // 4列目に区分を表示
+                  if (colIndex === 5) return score; // 5列目に点数を表示
+                  return "";
+                }
+                return score;
+              }
               return (
                 <td key={colIndex}
                   className={[
@@ -122,7 +117,7 @@ export const ScoreChartTable = memo(function ScoreChartTableContent({
                     score !== scoreRight ? "border-r" : "",
                     score !== scoreBottom ? "border-b" : "",
                   ].join(" ")}>
-                  {text}
+                  {getText()}
                 </td>
               )
             })}

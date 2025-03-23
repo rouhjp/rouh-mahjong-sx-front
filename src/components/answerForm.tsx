@@ -52,8 +52,8 @@ export const AnswerForm = memo(function AnswerFormContent({
         <select value={answer.point}
           onChange={e => setAnswer(prev => ({ ...prev, point: parseInt(e.target.value) || 0 }))}
           className="border p-0.5">
-          <option value={0}></option>
-          {Object.values(SELECTABLE_POINTS).map((point, index) =>
+          <option value={0} />
+          {SELECTABLE_POINTS.map((point, index) =>
             <option key={index} value={point}>{point}</option>
           )}
         </select>
@@ -63,8 +63,8 @@ export const AnswerForm = memo(function AnswerFormContent({
         <select value={answer.doubles}
           onChange={e => setAnswer(prev => ({ ...prev, doubles: parseInt(e.target.value) || 0 }))}
           className="border p-0.5">
-          <option value={0}></option>
-          {Object.values(SELECTABLE_DOUBLES).map((doubles, index) =>
+          <option value={0} />
+          {SELECTABLE_DOUBLES.map((doubles, index) =>
             <option key={index} value={doubles}>{doubles}</option>
           )}
         </select>
@@ -74,8 +74,8 @@ export const AnswerForm = memo(function AnswerFormContent({
         <select value={answer.limitType}
           onChange={e => setAnswer(prev => ({ ...prev, limitType: e.target.value }))}
           className="border mr-1 p-0.5">
-          <option value=""></option>
-          {Object.values(SELECTABLE_LIMIT_TYPES).map((limitType, index) =>
+          <option value="" />
+          {SELECTABLE_LIMIT_TYPES.map((limitType, index) =>
             <option key={index} value={limitType}>{limitType}</option>
           )}
         </select>

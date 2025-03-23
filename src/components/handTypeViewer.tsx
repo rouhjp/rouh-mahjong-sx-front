@@ -24,7 +24,7 @@ export const HandTypeViewer = memo(function HandTypeViewerContent({
   return (
     <div className="grid gap-2 grid-cols-2">
       <ul className="bg-white rounded-1 p-2 h-fit">
-        {Object.values(handTypes).map((handType, index) =>
+        {handTypes.map((handType, index) =>
           <li key={index}
             className="flex border-b border-black border-dotted">
             <div className="w-4/5">{handType.name}</div>
@@ -33,7 +33,7 @@ export const HandTypeViewer = memo(function HandTypeViewerContent({
         )}
       </ul>
       <ul className="bg-white rounded-1 p-2 h-fit">
-        {Object.values(pointTypes).map((pointType, index)=>
+        {pointTypes.map((pointType, index)=>
           <li key={index}
             className="flex border-b border-black border-dotted">
             <div className="w-4/5">{pointType.name}</div>
